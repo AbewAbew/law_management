@@ -1,0 +1,422 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:CASE-{YYYY}-{#####}",
+ "creation": "2025-11-19 18:14:06.272294",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "case_section",
+  "case_title",
+  "client",
+  "status",
+  "billing_type",
+  "case_lead",
+  "read_only_ojcx",
+  "reference_number",
+  "description",
+  "team_section",
+  "team_members",
+  "flat_fee_configuration_section",
+  "total_fee",
+  "create_milestone_invoice",
+  "payment_structure",
+  "payment_method",
+  "flat_bank_name",
+  "flat_fee_account_number",
+  "milestones",
+  "payment_instructions",
+  "additional_notes",
+  "retainer_configuration_section",
+  "initial_retainer_amount",
+  "replenishment_threshold",
+  "hourly_rate",
+  "retainer_payment_instruction",
+  "retainer_additional_notes",
+  "retainer_payment_method",
+  "bank_name",
+  "account_number",
+  "mobile_money_number",
+  "hourly_billing_configuration_section",
+  "non_retainer_hourly_rate",
+  "payment_terms",
+  "billing_frequency",
+  "minimum_billing_increment_minutes",
+  "hourly_payment_method",
+  "hourly_bank_name",
+  "hourly_account_number",
+  "hourly_payment_instructions",
+  "hourly_additional_notes",
+  "contingency_billing_configuration_section",
+  "column_break_akzs",
+  "percentage_of_recovery",
+  "settlement_amount",
+  "calculate_contingency_fee",
+  "currency",
+  "expense_handling",
+  "contingency_payment_method",
+  "contingency_bank_name",
+  "conitnegency_account_number",
+  "contingency_payment_instructions",
+  "contingency_additional_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "case_section",
+   "fieldtype": "Section Break",
+   "label": "Case"
+  },
+  {
+   "fieldname": "case_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Case Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nPending Activation\nActive\nOn Hold\nClosed",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "billing_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Billing Type",
+   "options": "Hourly\nFlat Fee\nRetainer\nContingency",
+   "reqd": 1
+  },
+  {
+   "default": "__user",
+   "fieldname": "case_lead",
+   "fieldtype": "Link",
+   "label": "Case Lead",
+   "options": "User"
+  },
+  {
+   "fetch_from": "case_lead.full_name",
+   "fieldname": "read_only_ojcx",
+   "fieldtype": "Read Only",
+   "label": "Lead Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_number",
+   "fieldtype": "Data",
+   "label": "Reference Number"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "team_section",
+   "fieldtype": "Section Break",
+   "label": "Team"
+  },
+  {
+   "fieldname": "team_members",
+   "fieldtype": "Table",
+   "label": "Team Members",
+   "options": "Case Member"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Flat Fee'\r\n",
+   "fieldname": "flat_fee_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Flat Fee Configuration"
+  },
+  {
+   "fieldname": "total_fee",
+   "fieldtype": "Currency",
+   "label": "Total Fee"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Flat Fee'",
+   "fieldname": "create_milestone_invoice",
+   "fieldtype": "Button",
+   "label": "Create Milestone Invoice",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "payment_structure",
+   "fieldtype": "Select",
+   "label": "Payment Structure",
+   "options": "Upfront\nMilestones\nCompletion"
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "Bank Transfer\nCheck\nCash\nOnline Payment"
+  },
+  {
+   "depends_on": "eval:doc.payment_method == 'Bank Transfer'",
+   "fieldname": "flat_bank_name",
+   "fieldtype": "Select",
+   "label": "Bank Name",
+   "options": "Commercial Bank of Ethiopia (CBE)\nAwash Bank\nDashen Bank\nBank of Abyssinia\nHibret Bank\nCooperative Bank of Oromia\nWegagen Bank\nNib International Bank\nZemen Bank\nOromia International Bank\nBunna International Bank\nBerhan Bank\nAbay Bank\nAddis International Bank\nEnat Bank\nGlobal Bank Ethiopia\nGoh Betoch Bank\nSiinqee Bank\nTsedey Bank\nAmhara Bank"
+  },
+  {
+   "depends_on": "eval:doc.payment_method == 'Bank Transfer'\r\n",
+   "fieldname": "flat_fee_account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Flat Fee' && doc.payment_structure == 'Milestones'",
+   "fieldname": "milestones",
+   "fieldtype": "Table",
+   "label": "Milestones",
+   "options": "Case Milestone"
+  },
+  {
+   "fieldname": "payment_instructions",
+   "fieldtype": "Small Text",
+   "label": "Payment Instructions"
+  },
+  {
+   "fieldname": "additional_notes",
+   "fieldtype": "Small Text",
+   "label": "Additional Notes"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Retainer'\r\n",
+   "fieldname": "retainer_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Retainer Configuration"
+  },
+  {
+   "fieldname": "initial_retainer_amount",
+   "fieldtype": "Currency",
+   "label": "Initial Retainer Amount ",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Retainer'\r\n"
+  },
+  {
+   "fieldname": "replenishment_threshold",
+   "fieldtype": "Currency",
+   "label": "Replenishment Threshold",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Retainer'\r\n"
+  },
+  {
+   "fieldname": "hourly_rate",
+   "fieldtype": "Currency",
+   "label": "Hourly Rate",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Retainer'\r\n"
+  },
+  {
+   "fieldname": "retainer_payment_instruction",
+   "fieldtype": "Small Text",
+   "label": "Payment Instructions"
+  },
+  {
+   "fieldname": "retainer_additional_notes",
+   "fieldtype": "Small Text",
+   "label": "Additional Notes"
+  },
+  {
+   "fieldname": "retainer_payment_method",
+   "fieldtype": "Select",
+   "label": " Payment Method",
+   "options": "Bank Transfer\nCheck\nCash\nTelebirr / Mobile Money"
+  },
+  {
+   "depends_on": "eval:doc.retainer_payment_method == 'Bank Transfer'",
+   "fieldname": "bank_name",
+   "fieldtype": "Select",
+   "label": "Bank Name",
+   "options": "Commercial Bank of Ethiopia (CBE)\nAwash Bank\nDashen Bank\nBank of Abyssinia\nHibret Bank\nCooperative Bank of Oromia\nWegagen Bank\nNib International Bank\nZemen Bank\nOromia International Bank\nBunna International Bank\nBerhan Bank\nAbay Bank\nAddis International Bank\nEnat Bank\nGlobal Bank Ethiopia\nGoh Betoch Bank\nSiinqee Bank\nTsedey Bank\nAmhara Bank"
+  },
+  {
+   "depends_on": "eval:doc.retainer_payment_method == 'Bank Transfer'\r\n",
+   "fieldname": "account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "depends_on": "eval:doc.retainer_payment_method == 'Telebirr / Mobile Money'\r\n",
+   "fieldname": "mobile_money_number",
+   "fieldtype": "Phone",
+   "label": "Mobile Money Number"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Hourly'\r\n",
+   "fieldname": "hourly_billing_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Hourly Billing Configuration"
+  },
+  {
+   "fieldname": "non_retainer_hourly_rate",
+   "fieldtype": "Currency",
+   "label": "Hourly Rate",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Hourly'\r\n"
+  },
+  {
+   "fieldname": "payment_terms",
+   "fieldtype": "Select",
+   "label": "Payment Terms",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Hourly'\r\n",
+   "options": "Due on Receipt\nNet 15\nNet 30\nNet 60",
+   "reqd": 1
+  },
+  {
+   "fieldname": "billing_frequency",
+   "fieldtype": "Select",
+   "label": "Billing Frequency",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Hourly'\r\n",
+   "options": "Weekly\nBi-Weekly\nMonthly\nOn Milestone",
+   "reqd": 1
+  },
+  {
+   "default": "6",
+   "fieldname": "minimum_billing_increment_minutes",
+   "fieldtype": "Int",
+   "label": "Minimum Billing Increment (minutes)"
+  },
+  {
+   "fieldname": "hourly_payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Hourly'\r\n",
+   "options": "Bank Transfer\nCheck\nCash\nTelebirr / Mobile Money",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.hourly_payment_method == 'Bank Transfer'\r\n",
+   "fieldname": "hourly_bank_name",
+   "fieldtype": "Select",
+   "label": "Bank Name",
+   "options": "Commercial Bank of Ethiopia (CBE)\nAwash Bank\nDashen Bank\nBank of Abyssinia\nHibret Bank\nCooperative Bank of Oromia\nWegagen Bank\nNib International Bank\nZemen Bank\nOromia International Bank\nBunna International Bank\nBerhan Bank\nAbay Bank\nAddis International Bank\nEnat Bank\nGlobal Bank Ethiopia\nGoh Betoch Bank\nSiinqee Bank\nTsedey Bank\nAmhara Bank"
+  },
+  {
+   "depends_on": "eval:doc.hourly_payment_method == 'Bank Transfer'\r\n",
+   "fieldname": "hourly_account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "fieldname": "hourly_payment_instructions",
+   "fieldtype": "Small Text",
+   "label": "Payment Instructions"
+  },
+  {
+   "fieldname": "hourly_additional_notes",
+   "fieldtype": "Small Text",
+   "label": "Additional Notes"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Contingency'\r\n",
+   "fieldname": "contingency_billing_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Contingency Billing Configuration"
+  },
+  {
+   "fieldname": "column_break_akzs",
+   "fieldtype": "Column Break",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Contingency'"
+  },
+  {
+   "description": "Percentage of settlement/judgment to be paid as fee",
+   "fieldname": "percentage_of_recovery",
+   "fieldtype": "Percent",
+   "label": "Percentage of Recovery",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Contingency'"
+  },
+  {
+   "fieldname": "settlement_amount",
+   "fieldtype": "Currency",
+   "label": "Settlement Amount"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Contingency'",
+   "fieldname": "calculate_contingency_fee",
+   "fieldtype": "Button",
+   "label": "Calculate Contingency Fee",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Currency",
+   "label": "Currency"
+  },
+  {
+   "depends_on": "eval:doc.billing_type == 'Contingency'",
+   "fieldname": "expense_handling",
+   "fieldtype": "Select",
+   "label": "Expense Handling",
+   "mandatory_depends_on": "eval:doc.billing_type == 'Contingency'",
+   "options": "Client Pays Expenses Upfront\nDeducted from Settlement (Before Fee)\nDeducted from Settlement (After Fee)\nLawyer Advances Expenses"
+  },
+  {
+   "fieldname": "contingency_payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "Bank Transfer\nCheck\nCash\nTelebirr / Mobile Money"
+  },
+  {
+   "depends_on": "eval:doc.contingency_payment_method == 'Bank Transfer'\r\n",
+   "fieldname": "contingency_bank_name",
+   "fieldtype": "Select",
+   "label": "Bank Name",
+   "options": "Commercial Bank of Ethiopia (CBE)\nAwash Bank\nDashen Bank\nBank of Abyssinia\nHibret Bank\nCooperative Bank of Oromia\nWegagen Bank\nNib International Bank\nZemen Bank\nOromia International Bank\nBunna International Bank\nBerhan Bank\nAbay Bank\nAddis International Bank\nEnat Bank\nGlobal Bank Ethiopia\nGoh Betoch Bank\nSiinqee Bank\nTsedey Bank\nAmhara Bank"
+  },
+  {
+   "depends_on": "eval:doc.contingency_payment_method == 'Bank Transfer'\r\n",
+   "fieldname": "conitnegency_account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "fieldname": "contingency_payment_instructions",
+   "fieldtype": "Small Text",
+   "label": "Payment Instructions"
+  },
+  {
+   "fieldname": "contingency_additional_notes",
+   "fieldtype": "Small Text",
+   "label": "Additional Notes"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-22 12:46:26.002139",
+ "modified_by": "Administrator",
+ "module": "Law Management",
+ "name": "Case",
+ "naming_rule": "Expression",
+ "owner": "abenezerbehailu20@gmail.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

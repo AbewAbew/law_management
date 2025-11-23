@@ -1,0 +1,115 @@
+{
+ "charts": [
+  {
+   "chart_name": "Cases by Status",
+   "label": "Cases by Status"
+  }
+ ],
+ "content": "[{\"id\":\"cjWUSr67Kg\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Legal Desk</span>\",\"col\":12}},{\"id\":\"djKUMLNLYM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Cases\",\"col\":3}},{\"id\":\"eE6SKaa45o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoices\",\"col\":3}},{\"id\":\"Yz7Is_zFLh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"-M7pyyyIQB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Timesheets\",\"col\":3}},{\"id\":\"ijS6pCBA2z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tasks\",\"col\":3}},{\"id\":\"H0p_DW2X6l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"To Do\",\"col\":3}},{\"id\":\"3TdvJh9dnH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Apply for Leave\",\"col\":3}},{\"id\":\"2NgJORsHul\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expenses\",\"col\":3}},{\"id\":\"qtehQP7wWo\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Cases by Status\",\"col\":12}}]",
+ "creation": "2025-11-20 19:41:52.671483",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "color-review-points",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Legal Desk",
+ "links": [],
+ "modified": "2025-11-22 13:33:10.200461",
+ "modified_by": "Administrator",
+ "module": "Law Management",
+ "name": "Legal Desk",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Legal Associate"
+  },
+  {
+   "role": "Legal Paralegal"
+  },
+  {
+   "role": "Legal Partner"
+  },
+  {
+   "role": "Legal Finance"
+  },
+  {
+   "role": "HR Manager"
+  }
+ ],
+ "sequence_id": 2.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Apply for Leave",
+   "link_to": "Leave Application",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Cases",
+   "link_to": "Case",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "To Do",
+   "link_to": "ToDo",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Expenses",
+   "link_to": "Expense Claim",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Invoices",
+   "link_to": "Sales Invoice",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Clients",
+   "link_to": "Customer",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Timesheets",
+   "link_to": "Timesheet",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Tasks",
+   "link_to": "Task",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Legal Desk"
+}
