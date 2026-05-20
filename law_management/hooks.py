@@ -43,7 +43,7 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Leave Application" : "public/js/leave_application_custom.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -120,10 +120,16 @@ app_license = "mit"
 # permission_query_conditions = {
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
+permission_query_conditions = {
+	"Case": "law_management.law_management.doctype.case.case.get_permission_query_conditions",
+}
 #
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
+has_permission = {
+	"Case": "law_management.law_management.doctype.case.case.has_permission",
+}
 
 # DocType Class
 # ---------------
@@ -148,13 +154,16 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"law_management.tasks.all"
 # 	],
-# 	"daily": [
-# 		"law_management.tasks.daily"
-# 	],
+	"daily": [
+		"law_management.tasks.check_retainer_expiry",
+		"law_management.tasks.check_court_appearances",
+		"law_management.tasks.check_retainer_usage",
+		"law_management.law_management.doctype.legal_bill.legal_bill.check_automation_rules"
+	],
 # 	"hourly": [
 # 		"law_management.tasks.hourly"
 # 	],
@@ -164,7 +173,7 @@ app_license = "mit"
 # 	"monthly": [
 # 		"law_management.tasks.monthly"
 # 	],
-# }
+}
 
 # Testing
 # -------
@@ -241,4 +250,11 @@ app_license = "mit"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+fixtures = [
+    "Client Script",
+    "Custom Field",
+    "Property Setter",
+    "Custom DocPerm"
+]
 

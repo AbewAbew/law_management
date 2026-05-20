@@ -1,11 +1,15 @@
 {
  "charts": [
   {
+   "chart_name": "Legal Invoices",
+   "label": "Legal Invoices"
+  },
+  {
    "chart_name": "Cases by Status",
    "label": "Cases by Status"
   }
  ],
- "content": "[{\"id\":\"cjWUSr67Kg\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Legal Desk</span>\",\"col\":12}},{\"id\":\"djKUMLNLYM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Cases\",\"col\":3}},{\"id\":\"eE6SKaa45o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoices\",\"col\":3}},{\"id\":\"Yz7Is_zFLh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"-M7pyyyIQB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Timesheets\",\"col\":3}},{\"id\":\"ijS6pCBA2z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tasks\",\"col\":3}},{\"id\":\"H0p_DW2X6l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"To Do\",\"col\":3}},{\"id\":\"3TdvJh9dnH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Apply for Leave\",\"col\":3}},{\"id\":\"2NgJORsHul\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expenses\",\"col\":3}},{\"id\":\"qtehQP7wWo\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Cases by Status\",\"col\":12}}]",
+ "content": "[{\"id\":\"cjWUSr67Kg\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Legal Desk</span>\",\"col\":12}},{\"id\":\"djKUMLNLYM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Cases\",\"col\":3}},{\"id\":\"Yz7Is_zFLh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"ijS6pCBA2z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tasks\",\"col\":3}},{\"id\":\"H0p_DW2X6l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"To Do\",\"col\":3}},{\"id\":\"3TdvJh9dnH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Apply for Leave\",\"col\":3}},{\"id\":\"2NgJORsHul\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expenses\",\"col\":3}},{\"id\":\"G-Zi5BZ5CM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Legal Service Item\",\"col\":3}},{\"id\":\"mjVgwohHg2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Legal Invoices\",\"col\":3}},{\"id\":\"R2DNRfHbWT\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Legal Invoices\",\"col\":12}},{\"id\":\"qtehQP7wWo\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Cases by Status\",\"col\":12}}]",
  "creation": "2025-11-20 19:41:52.671483",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,7 +22,7 @@
  "is_hidden": 0,
  "label": "Legal Desk",
  "links": [],
- "modified": "2025-11-22 13:33:10.200461",
+ "modified": "2025-12-23 19:45:56.265297",
  "modified_by": "Administrator",
  "module": "Law Management",
  "name": "Legal Desk",
@@ -65,8 +69,24 @@
   {
    "color": "Grey",
    "doc_view": "List",
+   "label": "Legal Service Item",
+   "link_to": "Legal Service Item",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
    "label": "To Do",
    "link_to": "ToDo",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Legal Invoices",
+   "link_to": "Legal Bill",
    "stats_filter": "[]",
    "type": "DocType"
   },
@@ -81,24 +101,8 @@
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "Invoices",
-   "link_to": "Sales Invoice",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
    "label": "Clients",
    "link_to": "Customer",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Timesheets",
-   "link_to": "Timesheet",
    "stats_filter": "[]",
    "type": "DocType"
   },

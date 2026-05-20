@@ -5,3 +5,16 @@
 tags
 node_modules
 __pycache__
+
+# Local bench scratch/verification scripts. Keep deployable app code in tracked
+# doctypes, fixtures, hooks, tasks, and public assets instead.
+law_management/add_*.py
+law_management/check_*.py
+law_management/convert_*.py
+law_management/create_*.py
+law_management/debug_check.py
+law_management/test_query.py
+law_management/trigger_custom.py
+law_management/update_workflow.py
+law_management/verify_*.py
+debug_bills.txt

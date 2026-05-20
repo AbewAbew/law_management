@@ -1,0 +1,102 @@
+{
+    "actions": [],
+    "camel_field_name_as_column": 1,
+    "creation": "2025-12-10 12:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "schedule_name",
+        "start_date",
+        "end_date",
+        "amount",
+        "allocated_hours",
+        "used_hours",
+        "excess_hours"
+    ],
+    "fields": [
+        {
+            "fieldname": "schedule_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Schedule Name",
+            "reqd": 1
+        },
+        {
+            "fieldname": "start_date",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "Start Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "end_date",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "End Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "amount",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Amount",
+            "reqd": 1
+        },
+        {
+            "fieldname": "allocated_hours",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Allocated Hours",
+            "reqd": 1
+        },
+        {
+            "fieldname": "used_hours",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Used Hours",
+            "read_only": 1
+        },
+        {
+            "fieldname": "excess_hours",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Excess Hours",
+            "read_only": 1
+        },
+        {
+            "fieldname": "excess_amount",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Excess Amount",
+            "read_only": 1
+        },
+        {
+            "default": "0",
+            "fieldname": "notification_75_sent",
+            "fieldtype": "Check",
+            "hidden": 1,
+            "label": "75% Notification Sent",
+            "read_only": 1
+        },
+        {
+            "default": "0",
+            "fieldname": "notification_90_sent",
+            "fieldtype": "Check",
+            "hidden": 1,
+            "label": "90% Notification Sent",
+            "read_only": 1
+        }
+    ],
+    "istable": 1,
+    "links": [],
+    "modified": "2025-12-10 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Law Management",
+    "name": "Retainer Schedule",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

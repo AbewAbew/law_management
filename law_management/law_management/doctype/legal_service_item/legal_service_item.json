@@ -1,0 +1,70 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "field:service_name",
+    "creation": "2024-12-20 12:00:00.000000",
+    "custom": 1,
+    "docstatus": 0,
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "service_name",
+        "standard_description",
+        "standard_rate"
+    ],
+    "fields": [
+        {
+            "fieldname": "service_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Service Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "standard_description",
+            "fieldtype": "Text",
+            "label": "Standard Description"
+        },
+        {
+            "fieldname": "standard_rate",
+            "fieldtype": "Currency",
+            "label": "Standard Rate"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-12-20 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Law Management",
+    "name": "Legal Service Item",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Legal Partner",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

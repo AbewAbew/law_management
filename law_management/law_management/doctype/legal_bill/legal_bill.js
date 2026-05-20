@@ -1,0 +1,185 @@
+// Copyright (c) 2024, Law Firm and contributors
+// For license information, please see license.txt
+
+frappe.ui.form.on('Legal Bill', {
+    setup: function (frm) {
+        frm.set_query('currency', function () {
+            return {
+                filters: {
+                    'enabled': 1
+                }
+            };
+        });
+
+        frm.set_query('print_format', function () {
+            return {
+                filters: {
+                    'doc_type': 'Legal Bill'
+                }
+            };
+        });
+    },
+
+    onload: function (frm) {
+        if (frm.is_new() && !frm.doc.finance_contact) {
+            frappe.call({
+                method: "law_management.law_management.doctype.legal_bill.legal_bill.get_legal_finance_user",
+                callback: function (r) {
+                    if (r.message) {
+                        frm.set_value("finance_contact", r.message);
+                    }
+                }
+            });
+        }
+
+        // Enforce Due Date calculation for mapped items
+        if (frm.doc.bill_date) {
+            var due_date = frappe.datetime.add_days(frm.doc.bill_date, 15);
+            frm.set_value('due_date', due_date);
+        }
+    },
+
+    refresh: function (frm) {
+        if (frm.doc.print_format) {
+            frm.meta.default_print_format = frm.doc.print_format;
+        }
+
+        // Buttons
+        if (frm.doc.status !== "Paid") {
+            frm.add_custom_button(__('Mark as Paid'), function () {
+                frm.set_value('status', 'Paid');
+                frm.save();
+            }).addClass('btn-primary');
+
+            frm.add_custom_button(__('Send Invoice Email'), function () {
+                frm.email_doc();
+            });
+        }
+
+        // Read Only if Paid
+        if (frm.doc.status === "Paid") {
+            frm.set_read_only(true);
+        }
+    },
+
+    currency: function (frm) {
+        if (frm.doc.currency) {
+            // Update child table currency for display
+            $.each(frm.doc.items || [], function (i, row) {
+                frappe.model.set_value(row.doctype, row.name, "currency", frm.doc.currency);
+            });
+            refresh_field("items");
+
+            if (frm.doc.currency !== "ETB") {
+                frappe.call({
+                    method: "erpnext.setup.utils.get_exchange_rate",
+                    args: {
+                        from_currency: frm.doc.currency,
+                        to_currency: "ETB"
+                    },
+                    callback: function (r) {
+                        if (!r.exc) {
+                            frm.set_value('conversion_rate', r.message);
+                            // Recalculate all row rates on conversion update
+                            calculate_all_rates(frm);
+                        }
+                    }
+                });
+            } else {
+                frm.set_value('conversion_rate', 1.0);
+                calculate_all_rates(frm);
+            }
+        }
+    },
+
+    validate: function (frm) {
+        calculate_totals(frm);
+    },
+
+    bill_date: function (frm) {
+        if (frm.doc.bill_date) {
+            var due_date = frappe.datetime.add_days(frm.doc.bill_date, 15);
+            frm.set_value('due_date', due_date);
+        }
+    }
+});
+
+frappe.ui.form.on('Legal Bill Item', {
+    qty: function (frm, cdt, cdn) {
+        calculate_row_total(frm, cdt, cdn);
+    },
+    // Rate is now calculated from Amount, so typically we don't edit it, but if we did, we might reverse calc?
+    // User asked "Rate column to show amount * conversion". Amount is editable.
+    amount: function (frm, cdt, cdn) {
+        calculate_rate_from_amount(frm, cdt, cdn);
+    },
+    service: function (frm, cdt, cdn) {
+        // Fetch standard details
+        var row = locals[cdt][cdn];
+        if (row.service) {
+            frappe.db.get_value("Legal Service Item", row.service, ["standard_description", "standard_rate"], function (r) {
+                if (r) {
+                    frappe.model.set_value(cdt, cdn, "description", r.standard_description);
+                    if (!row.currency) frappe.model.set_value(cdt, cdn, "currency", frm.doc.currency);
+
+                    // Standard Rate might be in ETB? Or USD? Assuming standard rate is a base suggestion.
+                    // If we treat it as Amount (foreign), we set Amount.
+                    // Let's assume standard_rate is just a default Amount.
+                    frappe.model.set_value(cdt, cdn, "amount", r.standard_rate);
+                    calculate_rate_from_amount(frm, cdt, cdn);
+                }
+            });
+        }
+    }
+});
+
+var calculate_rate_from_amount = function (frm, cdt, cdn) {
+    var row = locals[cdt][cdn];
+
+    // Rate is Foreign Currency
+    var rate_foreign = row.amount; // Assuming Qty=1 or user inputs "Amount" as lump sum
+    frappe.model.set_value(cdt, cdn, "rate", rate_foreign);
+
+    // ETB Amount is for internal reference
+    var etb_amount = row.amount * (frm.doc.conversion_rate || 1.0);
+    frappe.model.set_value(cdt, cdn, "etb_amount", etb_amount);
+
+    calculate_totals(frm);
+};
+
+var calculate_all_rates = function (frm) {
+    $.each(frm.doc.items || [], function (i, row) {
+        // Recalculate based on current Amount and new Conversion Rate
+        var rate_foreign = row.amount;
+        frappe.model.set_value(row.doctype, row.name, "rate", rate_foreign);
+
+        var etb_amount = row.amount * (frm.doc.conversion_rate || 1.0);
+        frappe.model.set_value(row.doctype, row.name, "etb_amount", etb_amount);
+    });
+    calculate_totals(frm);
+};
+
+var calculate_row_total = function (frm, cdt, cdn) {
+    // Legacy / Safety: If Qty changes, maybe Amount changes?
+    // Usually Amount = Qty * UnitPrice.
+    // Here Amount IS the foreign price.
+    // If Qty changes, does Amount (Total Foreign) change?
+    // Often "Amount" means "Line Total". "Rate" means "Unit Price".
+    // User said "Rate column should show amount * conversion rate".
+    // This implies "Rate" column is hijacking the meaning to be "ETB Total Value".
+    // And "Amount" is "Foreign Total Value".
+    // If Qty=2, Amount=$100, then Rate(ETB)=100*Rate.
+    // Does Qty affect Amount? If I type Amount=$100 manually, Qty doesn't matter for calc.
+    // So Qty is just informational or for the invoice print.
+    var row = locals[cdt][cdn];
+    calculate_rate_from_amount(frm, cdt, cdn);
+};
+
+var calculate_totals = function (frm) {
+    var grand_total = 0.0;
+    (frm.doc.items || []).forEach(function (item) {
+        grand_total += item.amount;
+    });
+    frm.set_value("grand_total", grand_total);
+    // In words logic could go here or server side
+};

@@ -1,0 +1,247 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "LB-.#####",
+    "creation": "2024-12-20 12:00:00.000000",
+    "custom": 0,
+    "docstatus": 0,
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "header_section",
+        "customer",
+        "reference_doctype",
+        "case_reference",
+        "bill_date",
+        "posting_time",
+        "due_date",
+        "column_break_header",
+        "status",
+        "days_open",
+        "workflow_state",
+        "finance_contact",
+        "escalation_contact",
+        "invoice_file",
+        "currency_section",
+        "currency",
+        "conversion_rate",
+        "items_section",
+        "items",
+        "totals_section",
+        "grand_total",
+        "in_words",
+        "print_settings_section",
+        "print_format",
+        "letter_head",
+        "select_print_heading",
+        "language",
+        "group_same_items"
+    ],
+    "fields": [
+        {
+            "fieldname": "header_section",
+            "fieldtype": "Section Break",
+            "label": "Header"
+        },
+        {
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "label": "Customer",
+            "options": "Customer",
+            "reqd": 1
+        },
+        {
+            "fieldname": "reference_doctype",
+            "fieldtype": "Link",
+            "label": "Reference DocType",
+            "options": "DocType",
+            "hidden": 1
+        },
+        {
+            "fieldname": "case_reference",
+            "fieldtype": "Dynamic Link",
+            "label": "Case Reference",
+            "options": "reference_doctype"
+        },
+        {
+            "default": "Today",
+            "fieldname": "bill_date",
+            "fieldtype": "Date",
+            "label": "Bill Date",
+            "reqd": 1
+        },
+        {
+            "default": "Now",
+            "fieldname": "posting_time",
+            "fieldtype": "Time",
+            "label": "Posting Time",
+            "reqd": 1
+        },
+        {
+            "fieldname": "due_date",
+            "fieldtype": "Date",
+            "label": "Due Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "currency_section",
+            "fieldtype": "Section Break",
+            "label": "Currency"
+        },
+        {
+            "default": "ETB",
+            "fieldname": "currency",
+            "fieldtype": "Link",
+            "label": "Currency",
+            "options": "Currency"
+        },
+        {
+            "default": "1.0",
+            "fieldname": "conversion_rate",
+            "fieldtype": "Float",
+            "label": "Conversion Rate",
+            "precision": "9"
+        },
+        {
+            "fieldname": "items_section",
+            "fieldtype": "Section Break",
+            "label": "Items"
+        },
+        {
+            "fieldname": "items",
+            "fieldtype": "Table",
+            "label": "Items",
+            "options": "Legal Bill Item"
+        },
+        {
+            "fieldname": "totals_section",
+            "fieldtype": "Section Break",
+            "label": "Totals"
+        },
+        {
+            "fieldname": "grand_total",
+            "fieldtype": "Currency",
+            "label": "Grand Total",
+            "options": "currency",
+            "read_only": 1
+        },
+        {
+            "fieldname": "in_words",
+            "fieldtype": "Small Text",
+            "label": "In Words",
+            "read_only": 1
+        },
+        {
+            "default": "Unpaid",
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Unpaid\nReminder Sent\nEscalated\nPaid"
+        },
+        {
+            "fieldname": "days_open",
+            "fieldtype": "Int",
+            "label": "Days Open",
+            "read_only": 1
+        },
+        {
+            "fieldname": "workflow_state",
+            "fieldtype": "Data",
+            "label": "Workflow State",
+            "read_only": 1
+        },
+        {
+            "fieldname": "invoice_file",
+            "fieldtype": "Attach",
+            "label": "Invoice File"
+        },
+        {
+            "fieldname": "column_break_header",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "finance_contact",
+            "fieldtype": "Link",
+            "label": "Finance Contact",
+            "options": "User",
+            "description": "Auto-filled with Legal Finance role user."
+        },
+        {
+            "fieldname": "escalation_contact",
+            "fieldtype": "Link",
+            "label": "Escalation Contact",
+            "options": "User",
+            "description": "Person to notify if bill is overdue by 30 days."
+        },
+        {
+            "fieldname": "print_settings_section",
+            "fieldtype": "Section Break",
+            "label": "Print Settings"
+        },
+        {
+            "fieldname": "print_format",
+            "fieldtype": "Link",
+            "label": "Print Format",
+            "options": "Print Format"
+        },
+        {
+            "fieldname": "letter_head",
+            "fieldtype": "Link",
+            "label": "Letter Head",
+            "options": "Letter Head"
+        },
+        {
+            "fieldname": "select_print_heading",
+            "fieldtype": "Link",
+            "label": "Select Print Heading",
+            "options": "Print Heading"
+        },
+        {
+            "fieldname": "language",
+            "fieldtype": "Link",
+            "label": "Language",
+            "options": "Language"
+        },
+        {
+            "default": "0",
+            "fieldname": "group_same_items",
+            "fieldtype": "Check",
+            "label": "Group Same Items"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-12-20 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Law Management",
+    "name": "Legal Bill",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Legal Partner",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

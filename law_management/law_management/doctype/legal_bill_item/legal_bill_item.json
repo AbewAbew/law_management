@@ -1,0 +1,86 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-12-20 12:00:00.000000",
+    "custom": 1,
+    "docstatus": 0,
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "service",
+        "description",
+        "qty",
+        "rate",
+        "amount",
+        "etb_amount",
+        "currency"
+    ],
+    "fields": [
+        {
+            "fieldname": "service",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Service",
+            "options": "Legal Service Item",
+            "reqd": 1
+        },
+        {
+            "fieldname": "description",
+            "fieldtype": "Small Text",
+            "in_list_view": 1,
+            "label": "Description"
+        },
+        {
+            "default": "1",
+            "fieldname": "qty",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Qty",
+            "reqd": 1
+        },
+        {
+            "fieldname": "rate",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Rate",
+            "options": "currency",
+            "read_only": 1,
+            "reqd": 1
+        },
+        {
+            "fieldname": "amount",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Amount",
+            "options": "currency",
+            "reqd": 1
+        },
+        {
+            "fieldname": "etb_amount",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Amount (ETB)",
+            "read_only": 1
+        },
+        {
+            "fieldname": "currency",
+            "fieldtype": "Link",
+            "hidden": 1,
+            "label": "Currency",
+            "options": "Currency"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-12-20 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Law Management",
+    "name": "Legal Bill Item",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

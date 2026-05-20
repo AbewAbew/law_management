@@ -1,0 +1,59 @@
+{
+    "actions": [],
+    "creation": "2024-12-17 13:25:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "legal_staff",
+        "court",
+        "court_number",
+        "next_appointment_date",
+        "notes"
+    ],
+    "fields": [
+        {
+            "fieldname": "legal_staff",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Legal Staff",
+            "options": "User"
+        },
+        {
+            "fieldname": "court",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Court",
+            "reqd": 1
+        },
+        {
+            "fieldname": "court_number",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Court Number"
+        },
+        {
+            "fieldname": "next_appointment_date",
+            "fieldtype": "Datetime",
+            "in_list_view": 1,
+            "label": "Next Appointment Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "notes",
+            "fieldtype": "Small Text",
+            "label": "Notes"
+        }
+    ],
+    "istable": 1,
+    "links": [],
+    "modified": "2024-12-17 13:25:00.000000",
+    "modified_by": "Administrator",
+    "module": "Law Management",
+    "name": "Court Appearance",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}
