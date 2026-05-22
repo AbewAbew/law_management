@@ -1,0 +1,93 @@
+[
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "/app/legal-desk",
+  "is_custom": 0,
+  "modified": "2025-11-20 20:29:14.793085",
+  "name": "Legal Partner",
+  "restrict_to_domain": null,
+  "role_name": "Legal Partner",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "/app/legal-desk",
+  "is_custom": 0,
+  "modified": "2025-11-20 20:28:56.277490",
+  "name": "Legal Associate",
+  "restrict_to_domain": null,
+  "role_name": "Legal Associate",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "/app/legal-desk",
+  "is_custom": 0,
+  "modified": "2025-11-20 20:29:07.957232",
+  "name": "Legal Paralegal",
+  "restrict_to_domain": null,
+  "role_name": "Legal Paralegal",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": "/app/legal-desk",
+  "is_custom": 0,
+  "modified": "2025-11-20 20:30:06.970446",
+  "name": "Legal Finance",
+  "restrict_to_domain": null,
+  "role_name": "Legal Finance",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-11-22 13:36:20.045564",
+  "name": "IP Manager",
+  "restrict_to_domain": null,
+  "role_name": "IP Manager",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-11-22 13:36:20.409924",
+  "name": "IP Staff",
+  "restrict_to_domain": null,
+  "role_name": "IP Staff",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-12-17 13:09:22.235862",
+  "name": "Legal Manager",
+  "restrict_to_domain": null,
+  "role_name": "Legal Manager",
+  "two_factor_auth": 0
+ }
+]

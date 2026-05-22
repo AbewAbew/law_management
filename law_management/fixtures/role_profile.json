@@ -1,0 +1,41 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-12-10 19:01:10.045281",
+  "name": "Legal",
+  "role_profile": "Legal",
+  "roles": [
+   {
+    "parent": "Legal",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "IP Manager"
+   },
+   {
+    "parent": "Legal",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "IP Staff"
+   },
+   {
+    "parent": "Legal",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Legal Associate"
+   },
+   {
+    "parent": "Legal",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Legal Paralegal"
+   },
+   {
+    "parent": "Legal",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Legal Partner"
+   }
+  ]
+ }
+]

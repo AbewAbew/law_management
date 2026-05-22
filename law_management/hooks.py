@@ -8,7 +8,7 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["erpnext", "hrms", "print_designer"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -251,10 +251,114 @@ scheduler_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-fixtures = [
-    "Client Script",
-    "Custom Field",
-    "Property Setter",
-    "Custom DocPerm"
+law_management_roles = [
+	"Legal Associate",
+	"Legal Finance",
+	"Legal Manager",
+	"Legal Paralegal",
+	"Legal Partner",
+	"IP Manager",
+	"IP Staff",
 ]
 
+law_management_custom_fields = [
+	"Customer-senior_mgmt_approval",
+	"Customer-custom_kyc__compliance",
+	"Customer-custom_referral_details",
+	"Customer-custom_referral_source",
+	"Customer-custom_referred_by_client",
+	"Customer-custom_referred_by_partner",
+	"Customer-custom_entity__personal_profile",
+	"Customer-custom_legal_form",
+	"Customer-custom_date_of_incorporation__birth",
+	"Customer-custom_place_of_incorporation__birth",
+	"Customer-custom_nationality__jurisdiction",
+	"Customer-custom_official_taxreg_number",
+	"Customer-custom_employment__business",
+	"Customer-custom_occupation__job_title",
+	"Customer-custom_name_of_employer",
+	"Customer-custom_intended_nature_of_business",
+	"Customer-custom_identification_documents",
+	"Customer-custom_id_type",
+	"Customer-custom_id_number",
+	"Customer-custom_issue_date",
+	"Customer-custom_expiry_date",
+	"Customer-custom_issuing_authority",
+	"Customer-custom_risk__financial_profile",
+	"Customer-custom_aml_risk_rating",
+	"Customer-custom_is_pep",
+	"Customer-custom_senior_mgmt_approval_by",
+	"Customer-custom_source_of_funds",
+	"Customer-custom_source_of_wealth_description",
+	"Customer-custom_ownership__structure",
+	"Customer-custom_beneficial_owners",
+	"Customer-custom_related_entities",
+	"Customer-custom_verification_status",
+	"Customer-custom_customer_declaration_signed",
+	"Customer-custom_address_verified",
+	"Customer-custom_kyc_status",
+	"Customer-custom_date_of_verification",
+	"Leave Application-custom_attachements",
+	"Leave Application-custom_medical_certificate",
+	"Task-custom_case",
+	"Task-assignees",
+	"Timesheet Detail-custom_case",
+]
+
+law_management_property_setters = [
+	"Customer-main-field_order",
+	"Customer-naming_series-hidden",
+	"Customer-naming_series-reqd",
+	"Leave Application-main-field_order",
+	"Leave Application-status-permlevel",
+	"Legal Bill-bill_date-in_list_view",
+	"Legal Bill-case_reference-in_list_view",
+	"Legal Bill-customer-in_list_view",
+	"Legal Bill-days_open-in_list_view",
+	"Legal Bill-due_date-in_list_view",
+	"Legal Bill-ip_case-in_list_view",
+	"Legal Bill-status-in_list_view",
+	"Task-main-field_order",
+	"Task-project-hidden",
+	"Timesheet-main-field_order",
+	"Timesheet-parent_project-hidden",
+	"Timesheet Detail-main-field_order",
+]
+
+fixtures = [
+	{
+		"dt": "Client Script",
+		"filters": [["module", "=", "Law Management"]],
+	},
+	{
+		"dt": "Custom Field",
+		"filters": [["name", "in", law_management_custom_fields]],
+	},
+	{
+		"dt": "Property Setter",
+		"filters": [["name", "in", law_management_property_setters]],
+	},
+	{
+		"dt": "Custom DocPerm",
+		"filters": [
+			["role", "in", law_management_roles],
+			["parent", "!=", "Email Account"],
+		],
+	},
+	{
+		"dt": "Role",
+		"filters": [["name", "in", law_management_roles]],
+	},
+	{
+		"dt": "Role Profile",
+		"filters": [["name", "in", ["Legal"]]],
+	},
+	{
+		"dt": "Print Format",
+		"filters": [["name", "in", ["Professional Legal Bill"]]],
+	},
+	{
+		"dt": "Dashboard Chart",
+		"filters": [["name", "in", ["Cases by Status", "Legal Invoices"]]],
+	},
+]

@@ -1,35 +1,35 @@
 [
-    {
-        "docstatus": 0,
-        "doctype": "Client Script",
-        "dt": "Case",
-        "enabled": 1,
-        "modified": "2025-11-23 19:45:18.003880",
-        "module": "Law Management",
-        "name": "Case Automation",
-        "script": "frappe.ui.form.on('Case', {\r\n    refresh: function(frm) {\r\n        // 2. HOURLY: Add Button (Since it's not in the DocType)\r\n        if (frm.doc.billing_type === 'Hourly' && frm.doc.status === 'Active') {\r\n            frm.add_custom_button(__('Create Invoice'), function() {\r\n                frm.trigger('create_hourly_invoice');\r\n            });\r\n        }\r\n    },\r\n    // --- BUTTON 3: HOURLY (Custom Event) ---\r\n    create_hourly_invoice: function(frm) {\r\n        frappe.call({\r\n            method: 'create_hourly_invoice',\r\n            doc: frm.doc,\r\n            freeze: true,\r\n            callback: function(r) {\r\n                if (!r.exc) {\r\n                    frm.reload_doc();\r\n                }\r\n            }\r\n        });\r\n    }\r\n});",
-        "view": "Form"
-    },
-    {
-        "docstatus": 0,
-        "doctype": "Client Script",
-        "dt": "Timesheet",
-        "enabled": 1,
-        "modified": "2025-11-23 19:49:18.486999",
-        "module": "Law Management",
-        "name": "Timesheet - Fetch Case Rate",
-        "script": "frappe.ui.form.on('Timesheet Detail', {\r\n    custom_case: function(frm, cdt, cdn) {\r\n        let row = locals[cdt][cdn];\r\n        if (row.custom_case) {\r\n            frappe.call({\r\n                method: 'law_management.law_management.doctype.case.case.get_member_rate',\r\n                args: {\r\n                    case: row.custom_case,\r\n                    user: frappe.session.user\r\n                },\r\n                callback: function(r) {\r\n                    if (r.message) {\r\n                        frappe.model.set_value(cdt, cdn, 'billing_rate', r.message);\r\n                        frappe.msgprint(`Rate updated to ${r.message} based on Case Agreement.`);\r\n                    }\r\n                }\r\n            });\r\n        }\r\n    }\r\n});",
-        "view": "Form"
-    },
-    {
-        "docstatus": 0,
-        "doctype": "Client Script",
-        "dt": "Task",
-        "enabled": 1,
-        "modified": "2025-11-24 18:30:14.972228",
-        "module": "Law Management",
-        "name": "Assign To Filter",
-        "script": "frappe.ui.form.on('Task', {\r\n    refresh: function(frm) {\r\n        // Apply filter directly to the 'assignees' field\r\n        frm.set_query('assignees', function() {\r\n            return {\r\n                query: 'law_management.law_management.doctype.case.case.get_member_query',\r\n                filters: {\r\n                    case_name: frm.doc.custom_case\r\n                }\r\n            };\r\n        });\r\n    },\r\n    custom_case: function(frm) {\r\n        frm.set_value('assignees', []);\r\n    }\r\n});",
-        "view": "Form"
-    }
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Case",
+  "enabled": 1,
+  "modified": "2025-11-23 19:45:18.003880",
+  "module": "Law Management",
+  "name": "Case Automation",
+  "script": "frappe.ui.form.on('Case', {\r\n    refresh: function(frm) {\r\n        // 2. HOURLY: Add Button (Since it's not in the DocType)\r\n        if (frm.doc.billing_type === 'Hourly' && frm.doc.status === 'Active') {\r\n            frm.add_custom_button(__('Create Invoice'), function() {\r\n                frm.trigger('create_hourly_invoice');\r\n            });\r\n        }\r\n    },\r\n    // --- BUTTON 3: HOURLY (Custom Event) ---\r\n    create_hourly_invoice: function(frm) {\r\n        frappe.call({\r\n            method: 'create_hourly_invoice',\r\n            doc: frm.doc,\r\n            freeze: true,\r\n            callback: function(r) {\r\n                if (!r.exc) {\r\n                    frm.reload_doc();\r\n                }\r\n            }\r\n        });\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Timesheet",
+  "enabled": 1,
+  "modified": "2025-11-23 19:49:18.486999",
+  "module": "Law Management",
+  "name": "Timesheet - Fetch Case Rate",
+  "script": "frappe.ui.form.on('Timesheet Detail', {\r\n    custom_case: function(frm, cdt, cdn) {\r\n        let row = locals[cdt][cdn];\r\n        if (row.custom_case) {\r\n            frappe.call({\r\n                method: 'law_management.law_management.doctype.case.case.get_member_rate',\r\n                args: {\r\n                    case: row.custom_case,\r\n                    user: frappe.session.user\r\n                },\r\n                callback: function(r) {\r\n                    if (r.message) {\r\n                        frappe.model.set_value(cdt, cdn, 'billing_rate', r.message);\r\n                        frappe.msgprint(`Rate updated to ${r.message} based on Case Agreement.`);\r\n                    }\r\n                }\r\n            });\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Task",
+  "enabled": 1,
+  "modified": "2025-11-24 18:30:14.972228",
+  "module": "Law Management",
+  "name": "Assign To Filter",
+  "script": "frappe.ui.form.on('Task', {\r\n    refresh: function(frm) {\r\n        // Apply filter directly to the 'assignees' field\r\n        frm.set_query('assignees', function() {\r\n            return {\r\n                query: 'law_management.law_management.doctype.case.case.get_member_query',\r\n                filters: {\r\n                    case_name: frm.doc.custom_case\r\n                }\r\n            };\r\n        });\r\n    },\r\n    custom_case: function(frm) {\r\n        frm.set_value('assignees', []);\r\n    }\r\n});",
+  "view": "Form"
+ }
 ]
