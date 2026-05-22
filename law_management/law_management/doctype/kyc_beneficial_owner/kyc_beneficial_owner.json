@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "full_name",
+  "shareholding_",
+  "is_pep",
+  "id_number",
+  "residential_address"
+ ],
+ "fields": [
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name"
+  },
+  {
+   "fieldname": "shareholding_",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Shareholding %"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_pep",
+   "fieldtype": "Check",
+   "label": "Is PEP?"
+  },
+  {
+   "fieldname": "id_number",
+   "fieldtype": "Data",
+   "label": "ID Number"
+  },
+  {
+   "fieldname": "residential_address",
+   "fieldtype": "Small Text",
+   "label": "Residential Address"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "module": "Law Management",
+ "name": "KYC Beneficial Owner",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
