@@ -4,7 +4,108 @@
 import frappe
 import json
 from frappe.model.document import Document
-from frappe.utils import today, getdate, add_months, add_days
+from frappe.utils import today, getdate, add_months, add_days, flt
+
+
+def _get_row_value(row, fieldname, default=None):
+	if hasattr(row, "get"):
+		return row.get(fieldname, default)
+	return getattr(row, fieldname, default)
+
+
+def _get_case_member_rates(case_name):
+	member_rates = {}
+	members = frappe.get_all(
+		"Case Member",
+		filters={
+			"parent": case_name,
+			"parenttype": "Case",
+			"parentfield": "team_members",
+		},
+		fields=["user", "billing_rate"],
+	)
+
+	for member in members:
+		member_rates[member.user] = flt(member.billing_rate)
+
+	return member_rates
+
+
+def _get_log_sort_key(log):
+	log_date = _get_row_value(log, "date")
+	return (
+		getdate(log_date) if log_date else getdate("1900-01-01"),
+		str(_get_row_value(log, "creation") or ""),
+		flt(_get_row_value(log, "idx") or 0),
+	)
+
+
+def _calculate_retainer_schedule_usage(retainer_schedules, time_logs, member_rates):
+	usage_by_schedule = {}
+	sorted_logs = sorted(time_logs or [], key=_get_log_sort_key)
+
+	for schedule in retainer_schedules or []:
+		schedule_name = _get_row_value(schedule, "schedule_name")
+		period_start = _get_row_value(schedule, "start_date")
+		period_end = _get_row_value(schedule, "end_date")
+
+		usage = frappe._dict(
+			used_hours=0.0,
+			excess_hours=0.0,
+			excess_amount=0.0,
+			missing_rate_users=[],
+		)
+
+		if not schedule_name:
+			continue
+
+		if not (period_start and period_end):
+			usage_by_schedule[schedule_name] = usage
+			continue
+
+		period_start = getdate(period_start)
+		period_end = getdate(period_end)
+		allocated = flt(_get_row_value(schedule, "allocated_hours"))
+		current_used = 0.0
+		missing_rate_users = set()
+
+		for log in sorted_logs:
+			log_date = _get_row_value(log, "date")
+			if not log_date:
+				continue
+
+			log_date = getdate(log_date)
+			if not (period_start <= log_date <= period_end):
+				continue
+
+			duration = flt(_get_row_value(log, "log_hours")) + (flt(_get_row_value(log, "log_minutes")) / 60.0)
+			if duration <= 0:
+				continue
+
+			if current_used >= allocated:
+				excess_part = duration
+			elif (current_used + duration) > allocated:
+				excess_part = (current_used + duration) - allocated
+			else:
+				excess_part = 0.0
+
+			current_used += duration
+			usage.used_hours += duration
+
+			if excess_part > 0:
+				usage.excess_hours += excess_part
+				user = _get_row_value(log, "user")
+				rate = flt(member_rates.get(user))
+
+				if not rate:
+					missing_rate_users.add(user)
+
+				usage.excess_amount += excess_part * rate
+
+		usage.missing_rate_users = sorted(user for user in missing_rate_users if user)
+		usage_by_schedule[schedule_name] = usage
+
+	return usage_by_schedule
 
 class Case(Document):
 	def validate(self):
@@ -25,70 +126,14 @@ class Case(Document):
 		if not self.retainer_schedules:
 			return
 
-		# 1. Fetch Member Rates
-		# stored as {user: rate}
-		member_rates = {}
-		members = frappe.get_all("Case Member", filters={"parent": self.name}, fields=["user", "billing_rate"])
-		for m in members:
-			member_rates[m.user] = m.billing_rate or 0
+		member_rates = _get_case_member_rates(self.name)
+		usage_by_schedule = _calculate_retainer_schedule_usage(self.retainer_schedules, self.time_logs, member_rates)
 
-		# 2. Reset Schedules
-		for s in self.retainer_schedules:
-			s.used_hours = 0
-			s.excess_hours = 0
-			s.excess_amount = 0.0
-
-		if not self.time_logs:
-			return
-
-		# 3. Process logs per schedule period
-		# We need to process chronologically to determine WHO pushed it over the limit
-
-		# Sort logs by date and creation (if available) for accurate timeline
-		sorted_logs = sorted(self.time_logs, key=lambda x: (getdate(x.date), x.creation or ""))
-
-		for s in self.retainer_schedules:
-			period_start = getdate(s.start_date)
-			period_end = getdate(s.end_date)
-			allocated = s.allocated_hours or 0
-			current_used = 0.0
-
-			for log in sorted_logs:
-				log_date = getdate(log.date)
-
-				if period_start <= log_date <= period_end:
-					# Calculate duration
-					h = log.log_hours or 0
-					m = log.log_minutes or 0
-					duration = h + (m / 60.0)
-
-					if duration <= 0:
-						continue
-
-					# Determine if this log contributes to excess
-					# Scenario 1: Already over limit -> Entire log is excess
-					if current_used >= allocated:
-						excess_part = duration
-						normal_part = 0.0
-
-					# Scenario 2: This log crosses the limit -> Split
-					elif (current_used + duration) > allocated:
-						normal_part = allocated - current_used
-						excess_part = duration - normal_part
-
-					# Scenario 3: Under limit -> All normal
-					else:
-						normal_part = duration
-						excess_part = 0.0
-
-					# Update totals
-					current_used += duration
-					s.used_hours += duration
-
-					if excess_part > 0:
-						s.excess_hours += excess_part
-						rate = member_rates.get(log.user, 0)
-						s.excess_amount += (excess_part * rate)
+		for schedule in self.retainer_schedules:
+			usage = usage_by_schedule.get(schedule.schedule_name) or frappe._dict()
+			schedule.used_hours = usage.get("used_hours", 0.0)
+			schedule.excess_hours = usage.get("excess_hours", 0.0)
+			schedule.excess_amount = usage.get("excess_amount", 0.0)
 
 	@frappe.whitelist()
 	def generate_retainer_schedule(self):
@@ -130,6 +175,7 @@ class Case(Document):
 				"amount": amount_per_period,
 				"allocated_hours": hours_per_period,
 				"used_hours": 0,
+				"excess_hours": 0,
 				"excess_amount": 0
 			})
 
@@ -202,10 +248,30 @@ def get_member_query(doctype, txt, searchfield, start, page_len, filters):
 @frappe.whitelist()
 def create_retainer_invoice(case_name, schedule_name):
 	case = frappe.get_doc("Case", case_name)
+	member_rates = _get_case_member_rates(case.name)
+	usage_by_schedule = _calculate_retainer_schedule_usage(case.retainer_schedules, case.time_logs, member_rates)
+
+	for schedule in case.retainer_schedules:
+		usage = usage_by_schedule.get(schedule.schedule_name) or frappe._dict()
+		schedule.used_hours = usage.get("used_hours", 0.0)
+		schedule.excess_hours = usage.get("excess_hours", 0.0)
+		schedule.excess_amount = usage.get("excess_amount", 0.0)
 
 	schedule_row = next((s for s in case.retainer_schedules if s.schedule_name == schedule_name), None)
 	if not schedule_row:
 		frappe.throw("Invalid Schedule Period selected")
+
+	schedule_usage = usage_by_schedule.get(schedule_name) or frappe._dict()
+	missing_rate_users = schedule_usage.get("missing_rate_users") or []
+	if missing_rate_users:
+		frappe.throw(
+			"Cannot invoice excess retainer hours because billing rates are missing for: {0}. "
+			"Set billing rates in the Case Team Members table and try again.".format(", ".join(missing_rate_users))
+		)
+
+	for schedule in case.retainer_schedules:
+		if schedule.name:
+			schedule.db_update()
 
 	# 1. Find or Create Default Service Item
 	service_item_name = "Retainer Fee"
@@ -242,7 +308,7 @@ def create_retainer_invoice(case_name, schedule_name):
 	})
 
 	# Check for Excess Amount
-	if schedule_row.excess_amount > 0:
+	if flt(schedule_row.excess_amount) > 0:
 		excess_item_name = "Retainer Excess Fee"
 		if not frappe.db.exists("Legal Service Item", excess_item_name):
 			try:

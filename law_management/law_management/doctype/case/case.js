@@ -45,6 +45,11 @@ frappe.ui.form.on("Case", {
 
         // Create Invoice Button
         frm.add_custom_button(__('Create Invoice'), function () {
+            if (frm.is_dirty()) {
+                frappe.msgprint(__("Please save the Case before creating an invoice so the latest time logs and retainer usage are included."));
+                return;
+            }
+
             if (frm.doc.billing_type === "Retainer") {
                 // Retainer Invoice Logic
                 if (!frm.doc.retainer_schedules || frm.doc.retainer_schedules.length === 0) {

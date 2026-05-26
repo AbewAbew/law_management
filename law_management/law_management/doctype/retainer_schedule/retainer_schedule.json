@@ -12,7 +12,8 @@
         "amount",
         "allocated_hours",
         "used_hours",
-        "excess_hours"
+        "excess_hours",
+        "excess_amount"
     ],
     "fields": [
         {
