@@ -26,7 +26,7 @@ def _format_invoice_name(year, sequence):
 
 def _generate_invoice_name(year):
 	series_key = _get_invoice_series_key(year)
-	current = frappe.db.get_value("Series", series_key, "current", for_update=True)
+	current = frappe.db.get_value("Series", series_key, "current", order_by="name", for_update=True)
 
 	if int(current or 0) >= LEGAL_INVOICE_MAX_PER_YEAR:
 		frappe.throw(f"Invoice numbering for {year} has reached {LEGAL_INVOICE_MAX_PER_YEAR}.")
