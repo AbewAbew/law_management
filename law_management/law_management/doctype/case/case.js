@@ -1,6 +1,13 @@
 // Copyright (c) 2025, Tbest and contributors
 // For license information, please see license.txt
 
+const STANDARD_BILLING_RATES_USD = {
+    "Partner": 250,
+    "Senior Associate": 230,
+    "Associate": 200,
+    "Junior Associate": 150
+};
+
 frappe.ui.form.on("Case", {
     refresh(frm) {
         // Show button for Flat Fee (Milestones OR Upfront/Completion)
@@ -236,6 +243,12 @@ frappe.ui.form.on("Case", {
 
 frappe.ui.form.on('Case Time Log', {
     time_logs_add: function (frm, cdt, cdn) {
+        if (!is_case_team_member(frm, frappe.session.user)) {
+            remove_time_log_row(frm, cdt, cdn);
+            frappe.msgprint(__("Only case team members can log time on this case."));
+            return;
+        }
+
         // Auto-fill User with current session user
         frappe.model.set_value(cdt, cdn, 'user', frappe.session.user);
     }
@@ -255,8 +268,31 @@ frappe.ui.form.on('Case Member', {
                 }
             });
         }
+    },
+
+    role: function (frm, cdt, cdn) {
+        set_standard_billing_rate(cdt, cdn);
     }
 });
+
+function set_standard_billing_rate(cdt, cdn) {
+    let row = locals[cdt][cdn];
+    let rate = STANDARD_BILLING_RATES_USD[row.role];
+
+    if (rate) {
+        frappe.model.set_value(cdt, cdn, 'billing_rate', rate);
+    }
+}
+
+function is_case_team_member(frm, user) {
+    return (frm.doc.team_members || []).some(member => member.user === user);
+}
+
+function remove_time_log_row(frm, cdt, cdn) {
+    frm.doc.time_logs = (frm.doc.time_logs || []).filter(row => row.name !== cdn);
+    frappe.model.clear_doc(cdt, cdn);
+    frm.refresh_field('time_logs');
+}
 
 // Patch AssignToDialog to filter users for Case doctype
 if (frappe.ui.form.AssignToDialog && !frappe.ui.form.AssignToDialog.prototype._case_filter_patched) {

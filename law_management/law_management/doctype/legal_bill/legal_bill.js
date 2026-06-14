@@ -18,6 +18,12 @@ frappe.ui.form.on('Legal Bill', {
                 }
             };
         });
+
+        frm.set_query('escalation_contact', function () {
+            return {
+                query: 'law_management.law_management.doctype.legal_bill.legal_bill.get_legal_partner_users'
+            };
+        });
     },
 
     onload: function (frm) {

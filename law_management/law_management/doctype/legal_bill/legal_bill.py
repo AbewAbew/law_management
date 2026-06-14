@@ -3,10 +3,45 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, getdate, add_days
 
+
+LEGAL_INVOICE_PREFIX = "TBeST/INV"
+LEGAL_INVOICE_DIGITS = 3
+LEGAL_INVOICE_MAX_PER_YEAR = 999
+
+
+def _get_invoice_year(bill_date=None):
+	return str(getdate(bill_date or nowdate()).year)
+
+
+def _get_invoice_series_key(year):
+	return f"{LEGAL_INVOICE_PREFIX}/{year}/"
+
+
+def _format_invoice_name(year, sequence):
+	return f"{LEGAL_INVOICE_PREFIX}/{sequence}/{year}"
+
+
+def _generate_invoice_name(year):
+	series_key = _get_invoice_series_key(year)
+	current = frappe.db.get_value("Series", series_key, "current", for_update=True)
+
+	if int(current or 0) >= LEGAL_INVOICE_MAX_PER_YEAR:
+		frappe.throw(f"Invoice numbering for {year} has reached {LEGAL_INVOICE_MAX_PER_YEAR}.")
+
+	internal_name = make_autoname(f"{series_key}.{'#' * LEGAL_INVOICE_DIGITS}")
+	sequence = internal_name.replace(series_key, "", 1)
+	return _format_invoice_name(year, sequence)
+
+
 class LegalBill(Document):
+	def autoname(self):
+		self.name = _generate_invoice_name(_get_invoice_year(self.bill_date))
+
 	def validate(self):
+		self.validate_escalation_contact()
 		self.calculate_due_date()
 
 	def before_save(self):
@@ -26,6 +61,23 @@ class LegalBill(Document):
 			self.days_open = (getdate(nowdate()) - getdate(self.bill_date)).days
 		else:
 			self.days_open = 0
+
+	def validate_escalation_contact(self):
+		if not self.escalation_contact:
+			return
+
+		is_enabled = frappe.db.get_value("User", self.escalation_contact, "enabled")
+		has_partner_role = frappe.db.exists(
+			"Has Role",
+			{
+				"parent": self.escalation_contact,
+				"parenttype": "User",
+				"role": "Legal Partner",
+			},
+		)
+
+		if not (is_enabled and has_partner_role):
+			frappe.throw("Escalation Contact must be an enabled user with the Legal Partner role.")
 
 	def calculate_due_date(self):
 		if self.bill_date:
@@ -151,3 +203,23 @@ def get_legal_finance_user():
 	if result:
 		return result[0][0]
 	return None
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_legal_partner_users(doctype, txt, searchfield, start, page_len, filters):
+	return frappe.db.sql("""
+		SELECT DISTINCT u.name, u.full_name
+		FROM `tabUser` u
+		JOIN `tabHas Role` hr ON hr.parent = u.name
+		WHERE hr.role = 'Legal Partner'
+		AND hr.parenttype = 'User'
+		AND u.enabled = 1
+		AND (u.name LIKE %(txt)s OR u.full_name LIKE %(txt)s)
+		ORDER BY u.full_name ASC
+		LIMIT %(start)s, %(page_len)s
+	""", {
+		"txt": "%" + (txt or "") + "%",
+		"start": start,
+		"page_len": page_len,
+	})

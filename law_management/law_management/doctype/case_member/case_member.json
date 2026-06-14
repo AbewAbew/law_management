@@ -30,7 +30,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Role",
-   "options": "Partner\nAssociate\nParalegal\nFinance",
+   "options": "Partner\nSenior Associate\nAssociate\nJunior Associate\nFinance",
    "reqd": 1
   },
   {
@@ -38,9 +38,10 @@
    "fieldtype": "Section Break"
   },
   {
+   "description": "Standard hourly rate in USD, exclusive of VAT. Used for retainer excess billing unless manually changed.",
    "fieldname": "billing_rate",
    "fieldtype": "Currency",
-   "label": "Billing Rate"
+   "label": "Billing Rate (USD)"
   }
  ],
  "grid_page_length": 50,

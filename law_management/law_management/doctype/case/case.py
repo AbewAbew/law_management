@@ -7,10 +7,39 @@ from frappe.model.document import Document
 from frappe.utils import today, getdate, add_months, add_days, flt
 
 
+STANDARD_BILLING_RATES_USD = {
+	"Partner": 250,
+	"Senior Associate": 230,
+	"Associate": 200,
+	"Junior Associate": 150,
+}
+
+
 def _get_row_value(row, fieldname, default=None):
 	if hasattr(row, "get"):
 		return row.get(fieldname, default)
 	return getattr(row, fieldname, default)
+
+
+def _get_standard_billing_rate(role):
+	return flt(STANDARD_BILLING_RATES_USD.get(role))
+
+
+def _get_member_billing_rate(member):
+	custom_rate = flt(_get_row_value(member, "billing_rate"))
+	if custom_rate:
+		return custom_rate
+
+	return _get_standard_billing_rate(_get_row_value(member, "role"))
+
+
+def _get_invalid_time_log_users(team_members, time_logs):
+	team_users = {_get_row_value(member, "user") for member in (team_members or []) if _get_row_value(member, "user")}
+	return sorted({
+		_get_row_value(log, "user")
+		for log in (time_logs or [])
+		if _get_row_value(log, "user") and _get_row_value(log, "user") not in team_users
+	})
 
 
 def _get_case_member_rates(case_name):
@@ -22,11 +51,11 @@ def _get_case_member_rates(case_name):
 			"parenttype": "Case",
 			"parentfield": "team_members",
 		},
-		fields=["user", "billing_rate"],
+		fields=["user", "role", "billing_rate"],
 	)
 
 	for member in members:
-		member_rates[member.user] = flt(member.billing_rate)
+		member_rates[member.user] = _get_member_billing_rate(member)
 
 	return member_rates
 
@@ -109,6 +138,8 @@ def _calculate_retainer_schedule_usage(retainer_schedules, time_logs, member_rat
 
 class Case(Document):
 	def validate(self):
+		self.validate_time_log_users()
+
 		if self.billing_type == "Retainer":
 			# Only regenerate if configuration changes or table is empty
 			if not self.retainer_schedules or \
@@ -121,6 +152,15 @@ class Case(Document):
 
 		if self.billing_type == "Retainer":
 			self.update_retainer_hours_from_logs()
+
+	def validate_time_log_users(self):
+		invalid_users = _get_invalid_time_log_users(self.team_members, self.time_logs)
+		if invalid_users:
+			frappe.throw(
+				"Only case team members can log time on this case. Add these users to the Case Team Members table first: {0}".format(
+					", ".join(invalid_users)
+				)
+			)
 
 	def update_retainer_hours_from_logs(self):
 		if not self.retainer_schedules:
@@ -193,8 +233,21 @@ class Case(Document):
 @frappe.whitelist()
 def get_member_rate(case, user):
 	# Helper to fetch rate for Timesheet
-	rate = frappe.db.get_value("Case Member", {"parent": case, "user": user}, "billing_rate")
-	return rate or 0
+	member = frappe.db.get_value(
+		"Case Member",
+		{"parent": case, "parenttype": "Case", "parentfield": "team_members", "user": user},
+		["role", "billing_rate"],
+		as_dict=True,
+	)
+
+	if not member:
+		return 0
+
+	return _get_member_billing_rate(member)
+
+@frappe.whitelist()
+def get_standard_billing_rate(role):
+	return _get_standard_billing_rate(role)
 
 @frappe.whitelist()
 def get_legal_team_users(doctype, txt, searchfield, start, page_len, filters):
@@ -224,8 +277,6 @@ def get_user_role_mapping(user):
 		return "Partner"
 	elif "Legal Associate" in roles:
 		return "Associate"
-	elif "Legal Paralegal" in roles:
-		return "Paralegal"
 
 	return ""
 
@@ -380,7 +431,7 @@ def get_permission_query_conditions(user):
 	if "Legal Partner" in roles or "System Manager" in roles:
 		return ""
 
-	# 2. Associates and Paralegals see only cases where they are a member
+	# 2. Non-partner legal team members see only cases where they are a member
 	return f"""(`tabCase`.name in (select parent from `tabCase Member` where user = '{user}'))"""
 
 def has_permission(doc, user):
@@ -391,10 +442,10 @@ def has_permission(doc, user):
 	if "Legal Partner" in roles or "System Manager" in roles:
 		return True
 
-	# 2. Associates and Paralegals:
-	# - Create: Blocked for Paralegals (handled here or via Role Permissions)
+	# 2. Non-partner legal team members:
+	# - Create: Blocked for Legal Paralegals (handled here or via Role Permissions)
 	if doc.is_new():
-		if "Paralegal" in roles and "Legal Associate" not in roles:
+		if "Legal Paralegal" in roles and "Legal Associate" not in roles:
 			return False
 		return True
 

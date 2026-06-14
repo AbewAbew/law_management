@@ -1,7 +1,7 @@
 {
     "actions": [],
-    "allow_rename": 1,
-    "autoname": "LB-.#####",
+    "allow_rename": 0,
+    "autoname": "",
     "creation": "2024-12-20 12:00:00.000000",
     "custom": 0,
     "docstatus": 0,
