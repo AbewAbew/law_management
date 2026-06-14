@@ -5,6 +5,7 @@ import frappe
 from law_management.law_management.doctype.legal_bill import legal_bill
 
 from law_management.law_management.doctype.legal_bill.legal_bill import (
+	DEFAULT_CURRENCY,
 	LegalBill,
 	_format_invoice_name,
 	_generate_invoice_name,
@@ -46,3 +47,27 @@ class TestLegalBillNaming(unittest.TestCase):
 
 		generate_invoice_name.assert_called_once_with("2026")
 		self.assertEqual(bill.name, "TBeST/INV/001/2026")
+
+	def test_legal_bill_defaults_to_usd(self):
+		bill = frappe._dict(currency=None, conversion_rate=None)
+
+		LegalBill.set_default_currency(bill)
+
+		self.assertEqual(bill.currency, DEFAULT_CURRENCY)
+		self.assertEqual(bill.conversion_rate, 1.0)
+
+	def test_legal_bill_items_follow_invoice_currency(self):
+		bill = frappe._dict(
+			currency="USD",
+			conversion_rate=1.0,
+			items=[
+				frappe._dict(currency=None, qty=1, rate=250, amount=250, etb_amount=None),
+				frappe._dict(currency=None, qty=1, rate=100, amount=100, etb_amount=None),
+			],
+			grand_total=0,
+		)
+
+		LegalBill.set_item_currency_and_totals(bill)
+
+		self.assertEqual([item.currency for item in bill.get("items")], ["USD", "USD"])
+		self.assertEqual(bill.grand_total, 350)

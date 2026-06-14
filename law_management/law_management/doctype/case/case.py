@@ -13,12 +13,22 @@ STANDARD_BILLING_RATES_USD = {
 	"Associate": 200,
 	"Junior Associate": 150,
 }
+DEFAULT_CURRENCY = "USD"
+SUPPORTED_CASE_CURRENCIES = {"USD", "ETB"}
 
 
 def _get_row_value(row, fieldname, default=None):
 	if hasattr(row, "get"):
 		return row.get(fieldname, default)
 	return getattr(row, fieldname, default)
+
+
+def _get_document_currency(doc):
+	currency = _get_row_value(doc, "currency")
+	if currency in SUPPORTED_CASE_CURRENCIES:
+		return currency
+
+	return DEFAULT_CURRENCY
 
 
 def _get_standard_billing_rate(role):
@@ -138,6 +148,8 @@ def _calculate_retainer_schedule_usage(retainer_schedules, time_logs, member_rat
 
 class Case(Document):
 	def validate(self):
+		self.currency = _get_document_currency(self)
+
 		self.validate_time_log_users()
 
 		if self.billing_type == "Retainer":
@@ -346,6 +358,7 @@ def create_retainer_invoice(case_name, schedule_name):
 	invoice.customer = case.client
 	invoice.reference_doctype = "Case"
 	invoice.case_reference = case.name
+	invoice.currency = _get_document_currency(case)
 	invoice.bill_date = today()
 	invoice.due_date = today() # Or based on payment terms
 
@@ -408,6 +421,7 @@ def create_milestone_invoice(case_name, milestone_name):
 	invoice.customer = case.client
 	invoice.reference_doctype = "Case"
 	invoice.case_reference = case.name
+	invoice.currency = _get_document_currency(case)
 	invoice.bill_date = today()
 	invoice.due_date = today()
 

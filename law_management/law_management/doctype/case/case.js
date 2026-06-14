@@ -9,6 +9,22 @@ const STANDARD_BILLING_RATES_USD = {
 };
 
 frappe.ui.form.on("Case", {
+    setup(frm) {
+        frm.set_query("currency", function () {
+            return {
+                filters: {
+                    enabled: 1
+                }
+            };
+        });
+    },
+
+    onload(frm) {
+        if (frm.is_new() && !frm.doc.currency) {
+            frm.set_value("currency", "USD");
+        }
+    },
+
     refresh(frm) {
         // Show button for Flat Fee (Milestones OR Upfront/Completion)
         // Billing logic removed as per new Legal Bill workflow
@@ -66,7 +82,7 @@ frappe.ui.form.on("Case", {
 
                 let options = frm.doc.retainer_schedules.map(d => {
                     return {
-                        label: `${d.schedule_name} (${d.start_date} - ${d.end_date}) : ${format_currency(d.amount, frm.doc.currency)}`,
+                        label: `${d.schedule_name} (${d.start_date} - ${d.end_date}) : ${format_currency(d.amount, frm.doc.currency || "USD")}`,
                         value: d.schedule_name
                     }
                 });
@@ -111,7 +127,7 @@ frappe.ui.form.on("Case", {
 
                 let options = frm.doc.milestones.map(m => {
                     return {
-                        label: `${m.milestone_name} : ${format_currency(m.amount, frm.doc.currency)}`,
+                        label: `${m.milestone_name} : ${format_currency(m.amount, frm.doc.currency || "USD")}`,
                         value: m.milestone_name
                     }
                 });
@@ -151,7 +167,8 @@ frappe.ui.form.on("Case", {
                 // Standard Invoice Logic (Hourly, Flat Fee Upfront etc)
                 frappe.new_doc('Legal Bill', {
                     case_reference: frm.doc.name,
-                    customer: frm.doc.client
+                    customer: frm.doc.client,
+                    currency: frm.doc.currency || "USD"
                 });
             }
         });

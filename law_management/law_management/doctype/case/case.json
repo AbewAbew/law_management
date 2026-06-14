@@ -11,6 +11,7 @@
         "client",
         "status",
         "billing_type",
+        "currency",
         "case_lead",
         "read_only_ojcx",
         "reference_number",
@@ -60,7 +61,6 @@
         "column_break_akzs",
         "percentage_of_recovery",
         "settlement_amount",
-        "currency",
         "expense_handling",
         "contingency_payment_method",
         "contingency_bank_name",
@@ -105,6 +105,15 @@
             "in_list_view": 1,
             "label": "Billing Type",
             "options": "Hourly\nFlat Fee\nRetainer\nContingency",
+            "reqd": 1
+        },
+        {
+            "default": "USD",
+            "fieldname": "currency",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Currency",
+            "options": "Currency",
             "reqd": 1
         },
         {
@@ -169,7 +178,8 @@
         {
             "fieldname": "total_fee",
             "fieldtype": "Currency",
-            "label": "Total Fee"
+            "label": "Total Fee",
+            "options": "currency"
         },
         {
             "fieldname": "payment_structure",
@@ -236,7 +246,8 @@
             "fieldname": "retainer_amount",
             "fieldtype": "Currency",
             "label": "Full Payment",
-            "mandatory_depends_on": "eval:doc.billing_type == 'Retainer'\r\n"
+            "mandatory_depends_on": "eval:doc.billing_type == 'Retainer'\r\n",
+            "options": "currency"
         },
         {
             "default": "1",
@@ -326,7 +337,8 @@
             "fieldname": "non_retainer_hourly_rate",
             "fieldtype": "Currency",
             "label": "Hourly Rate",
-            "mandatory_depends_on": "eval:doc.billing_type == 'Hourly'\r\n"
+            "mandatory_depends_on": "eval:doc.billing_type == 'Hourly'\r\n",
+            "options": "currency"
         },
         {
             "fieldname": "payment_terms",
@@ -402,12 +414,8 @@
         {
             "fieldname": "settlement_amount",
             "fieldtype": "Currency",
-            "label": "Settlement Amount"
-        },
-        {
-            "fieldname": "currency",
-            "fieldtype": "Currency",
-            "label": "Currency"
+            "label": "Settlement Amount",
+            "options": "currency"
         },
         {
             "depends_on": "eval:doc.billing_type == 'Contingency'",

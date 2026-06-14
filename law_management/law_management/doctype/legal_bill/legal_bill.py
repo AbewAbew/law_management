@@ -10,6 +10,7 @@ from frappe.utils import nowdate, getdate, add_days
 LEGAL_INVOICE_PREFIX = "TBeST/INV"
 LEGAL_INVOICE_DIGITS = 3
 LEGAL_INVOICE_MAX_PER_YEAR = 999
+DEFAULT_CURRENCY = "USD"
 
 
 def _get_invoice_year(bill_date=None):
@@ -41,8 +42,10 @@ class LegalBill(Document):
 		self.name = _generate_invoice_name(_get_invoice_year(self.bill_date))
 
 	def validate(self):
+		self.set_default_currency()
 		self.validate_escalation_contact()
 		self.calculate_due_date()
+		self.set_item_currency_and_totals()
 
 	def before_save(self):
 		self.calculate_days_open()
@@ -61,6 +64,31 @@ class LegalBill(Document):
 			self.days_open = (getdate(nowdate()) - getdate(self.bill_date)).days
 		else:
 			self.days_open = 0
+
+	def set_default_currency(self):
+		if not self.currency:
+			self.currency = DEFAULT_CURRENCY
+
+		if not self.conversion_rate:
+			self.conversion_rate = 1.0
+
+	def set_item_currency_and_totals(self):
+		total = 0.0
+		items = self.get("items") if hasattr(self, "get") else getattr(self, "items", None)
+		for item in items or []:
+			if not item.currency:
+				item.currency = self.currency
+
+			if item.amount is None and item.rate is not None:
+				item.amount = (item.qty or 1) * item.rate
+
+			if item.rate is None and item.amount is not None:
+				item.rate = item.amount
+
+			item.etb_amount = (item.amount or 0) * (self.conversion_rate or 1.0)
+			total += item.amount or 0
+
+		self.grand_total = total
 
 	def validate_escalation_contact(self):
 		if not self.escalation_contact:

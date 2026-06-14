@@ -5,13 +5,24 @@ import frappe
 
 from law_management.law_management.doctype.case.case import (
 	Case,
+	DEFAULT_CURRENCY,
 	_calculate_retainer_schedule_usage,
+	_get_document_currency,
 	_get_invalid_time_log_users,
 	_get_member_billing_rate,
 )
 
 
 class TestRetainerBilling(unittest.TestCase):
+	def test_case_currency_defaults_to_usd(self):
+		self.assertEqual(_get_document_currency(frappe._dict(currency=None)), DEFAULT_CURRENCY)
+
+	def test_case_currency_uses_selected_currency(self):
+		self.assertEqual(_get_document_currency(frappe._dict(currency="ETB")), "ETB")
+
+	def test_case_currency_ignores_old_invalid_currency_values(self):
+		self.assertEqual(_get_document_currency(frappe._dict(currency="0.000000000")), DEFAULT_CURRENCY)
+
 	def test_standard_role_rates_are_used_when_custom_rate_is_missing(self):
 		self.assertEqual(_get_member_billing_rate(frappe._dict(role="Partner", billing_rate=0)), 250)
 		self.assertEqual(_get_member_billing_rate(frappe._dict(role="Senior Associate", billing_rate=0)), 230)
