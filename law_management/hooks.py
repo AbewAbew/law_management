@@ -309,6 +309,8 @@ law_management_property_setters = [
 	"Customer-main-field_order",
 	"Customer-naming_series-hidden",
 	"Customer-naming_series-reqd",
+	"Employee-naming_series-default",
+	"Employee-naming_series-options",
 	"Leave Application-main-field_order",
 	"Leave Application-status-permlevel",
 	"Legal Bill-bill_date-in_list_view",
