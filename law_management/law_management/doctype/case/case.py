@@ -15,6 +15,9 @@ STANDARD_BILLING_RATES_USD = {
 }
 DEFAULT_CURRENCY = "USD"
 SUPPORTED_CASE_CURRENCIES = {"USD", "ETB"}
+CASE_LEAD_ROLES = ("Legal Partner", "Legal Associate")
+LEGAL_TEAM_ROLES = ("Legal Partner", "Legal Associate", "Legal Paralegal")
+EXCLUDED_USER_LINKS = ("Administrator", "Guest")
 
 
 def _get_row_value(row, fieldname, default=None):
@@ -68,6 +71,25 @@ def _get_case_member_rates(case_name):
 		member_rates[member.user] = _get_member_billing_rate(member)
 
 	return member_rates
+
+
+def _is_lawyer_user(user):
+	if not user or user in EXCLUDED_USER_LINKS:
+		return False
+
+	if not frappe.db.get_value("User", user, "enabled"):
+		return False
+
+	return bool(
+		frappe.db.exists(
+			"Has Role",
+			{
+				"parent": user,
+				"parenttype": "User",
+				"role": ["in", CASE_LEAD_ROLES],
+			},
+		)
+	)
 
 
 def _get_log_sort_key(log):
@@ -150,6 +172,7 @@ class Case(Document):
 	def validate(self):
 		self.currency = _get_document_currency(self)
 
+		self.validate_case_lead()
 		self.validate_time_log_users()
 
 		if self.billing_type == "Retainer":
@@ -186,6 +209,13 @@ class Case(Document):
 			schedule.used_hours = usage.get("used_hours", 0.0)
 			schedule.excess_hours = usage.get("excess_hours", 0.0)
 			schedule.excess_amount = usage.get("excess_amount", 0.0)
+
+	def validate_case_lead(self):
+		if not self.case_lead:
+			return
+
+		if not _is_lawyer_user(self.case_lead):
+			frappe.throw("Case Lead must be an enabled user with Legal Partner or Legal Associate role.")
 
 	@frappe.whitelist()
 	def generate_retainer_schedule(self):
@@ -261,22 +291,35 @@ def get_member_rate(case, user):
 def get_standard_billing_rate(role):
 	return _get_standard_billing_rate(role)
 
-@frappe.whitelist()
-def get_legal_team_users(doctype, txt, searchfield, start, page_len, filters):
+
+def _get_users_with_roles(roles, txt, start, page_len):
 	return frappe.db.sql("""
 		SELECT distinct t1.name, t1.full_name
 		FROM `tabUser` t1, `tabHas Role` t2
 		WHERE t2.parent = t1.name
-		AND t2.role IN ('Legal Partner', 'Legal Associate', 'Legal Paralegal')
+		AND t2.role IN %(roles)s
 		AND t1.enabled = 1
+		AND t1.name NOT IN %(excluded_users)s
 		AND (t1.name LIKE %(txt)s OR t1.full_name LIKE %(txt)s)
 		ORDER BY t1.full_name ASC
 		LIMIT %(start)s, %(page_len)s
 	""", {
+		"roles": tuple(roles),
+		"excluded_users": EXCLUDED_USER_LINKS,
 		"txt": "%" + (txt or "") + "%",
 		"start": start,
 		"page_len": page_len
 	})
+
+
+@frappe.whitelist()
+def get_lawyer_users(doctype, txt, searchfield, start, page_len, filters):
+	return _get_users_with_roles(CASE_LEAD_ROLES, txt, start, page_len)
+
+
+@frappe.whitelist()
+def get_legal_team_users(doctype, txt, searchfield, start, page_len, filters):
+	return _get_users_with_roles(LEGAL_TEAM_ROLES, txt, start, page_len)
 
 
 @frappe.whitelist()

@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
 
@@ -10,6 +10,7 @@ from law_management.law_management.doctype.case.case import (
 	_get_document_currency,
 	_get_invalid_time_log_users,
 	_get_member_billing_rate,
+	_is_lawyer_user,
 )
 
 
@@ -77,6 +78,38 @@ class TestRetainerBilling(unittest.TestCase):
 
 		throw.assert_called_once()
 		self.assertIn("Only case team members can log time on this case.", throw.call_args.args[0])
+
+	def test_administrator_is_not_a_valid_case_lead(self):
+		self.assertFalse(_is_lawyer_user("Administrator"))
+
+	def test_non_lawyer_user_is_not_a_valid_case_lead(self):
+		fake_db = Mock()
+		fake_db.get_value.return_value = 1
+		fake_db.exists.return_value = None
+
+		with patch.object(frappe.local, "db", fake_db, create=True):
+			self.assertFalse(_is_lawyer_user("finance@example.com"))
+
+	def test_lawyer_user_is_a_valid_case_lead(self):
+		fake_db = Mock()
+		fake_db.get_value.return_value = 1
+		fake_db.exists.return_value = "role-row"
+
+		with patch.object(frappe.local, "db", fake_db, create=True):
+			self.assertTrue(_is_lawyer_user("lawyer@example.com"))
+
+	def test_case_validation_rejects_non_lawyer_case_lead(self):
+		case = frappe._dict(case_lead="finance@example.com")
+
+		with patch("law_management.law_management.doctype.case.case._is_lawyer_user", return_value=False), patch(
+			"law_management.law_management.doctype.case.case.frappe.throw",
+			side_effect=frappe.ValidationError("Case Lead must be an enabled user with Legal Partner or Legal Associate role."),
+		) as throw:
+			with self.assertRaises(frappe.ValidationError):
+				Case.validate_case_lead(case)
+
+		throw.assert_called_once()
+		self.assertIn("Case Lead must be an enabled user", throw.call_args.args[0])
 
 	def test_excess_hours_are_split_and_billed(self):
 		usage_by_schedule = _calculate_retainer_schedule_usage(

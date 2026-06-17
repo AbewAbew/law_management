@@ -17,6 +17,12 @@ frappe.ui.form.on("Case", {
                 }
             };
         });
+
+        frm.set_query("case_lead", function () {
+            return {
+                query: "law_management.law_management.doctype.case.case.get_lawyer_users"
+            };
+        });
     },
 
     onload(frm) {
