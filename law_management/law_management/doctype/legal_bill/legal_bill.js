@@ -38,6 +38,8 @@ frappe.ui.form.on('Legal Bill', {
             });
         }
 
+        sync_item_currencies(frm);
+
         // Enforce Due Date calculation for mapped items
         if (frm.doc.bill_date) {
             var due_date = frappe.datetime.add_days(frm.doc.bill_date, 15);
@@ -46,6 +48,8 @@ frappe.ui.form.on('Legal Bill', {
     },
 
     refresh: function (frm) {
+        sync_item_currencies(frm);
+
         if (frm.doc.print_format) {
             frm.meta.default_print_format = frm.doc.print_format;
         }
@@ -71,10 +75,7 @@ frappe.ui.form.on('Legal Bill', {
     currency: function (frm) {
         if (frm.doc.currency) {
             // Update child table currency for display
-            $.each(frm.doc.items || [], function (i, row) {
-                frappe.model.set_value(row.doctype, row.name, "currency", frm.doc.currency);
-            });
-            refresh_field("items");
+            sync_item_currencies(frm);
 
             if (frm.doc.currency !== "ETB") {
                 frappe.call({
@@ -111,6 +112,9 @@ frappe.ui.form.on('Legal Bill', {
 });
 
 frappe.ui.form.on('Legal Bill Item', {
+    items_add: function (frm, cdt, cdn) {
+        frappe.model.set_value(cdt, cdn, "currency", frm.doc.currency || "USD");
+    },
     qty: function (frm, cdt, cdn) {
         calculate_row_total(frm, cdt, cdn);
     },
@@ -126,7 +130,7 @@ frappe.ui.form.on('Legal Bill Item', {
             frappe.db.get_value("Legal Service Item", row.service, ["standard_description", "standard_rate"], function (r) {
                 if (r) {
                     frappe.model.set_value(cdt, cdn, "description", r.standard_description);
-                    if (!row.currency) frappe.model.set_value(cdt, cdn, "currency", frm.doc.currency);
+                    frappe.model.set_value(cdt, cdn, "currency", frm.doc.currency || "USD");
 
                     // Standard Rate might be in ETB? Or USD? Assuming standard rate is a base suggestion.
                     // If we treat it as Amount (foreign), we set Amount.
@@ -138,6 +142,18 @@ frappe.ui.form.on('Legal Bill Item', {
         }
     }
 });
+
+var sync_item_currencies = function (frm) {
+    const currency = frm.doc.currency || "USD";
+
+    (frm.doc.items || []).forEach(function (row) {
+        if (row.currency !== currency) {
+            frappe.model.set_value(row.doctype, row.name, "currency", currency);
+        }
+    });
+
+    refresh_field("items");
+};
 
 var calculate_rate_from_amount = function (frm, cdt, cdn) {
     var row = locals[cdt][cdn];

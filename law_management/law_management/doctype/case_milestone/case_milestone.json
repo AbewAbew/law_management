@@ -8,6 +8,7 @@
  "field_order": [
   "milestone_name",
   "due_date",
+  "currency",
   "amount",
   "status"
  ],
@@ -29,7 +30,16 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount",
+   "options": "currency",
    "reqd": 1
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Currency",
+   "options": "Currency"
   },
   {
    "default": "Pending",

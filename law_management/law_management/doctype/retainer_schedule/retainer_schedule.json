@@ -9,6 +9,7 @@
         "schedule_name",
         "start_date",
         "end_date",
+        "currency",
         "amount",
         "allocated_hours",
         "used_hours",
@@ -42,6 +43,7 @@
             "fieldtype": "Currency",
             "in_list_view": 1,
             "label": "Amount",
+            "options": "currency",
             "reqd": 1
         },
         {
@@ -70,7 +72,16 @@
             "fieldtype": "Currency",
             "in_list_view": 1,
             "label": "Excess Amount",
+            "options": "currency",
             "read_only": 1
+        },
+        {
+            "default": "USD",
+            "fieldname": "currency",
+            "fieldtype": "Link",
+            "hidden": 1,
+            "label": "Currency",
+            "options": "Currency"
         },
         {
             "default": "0",

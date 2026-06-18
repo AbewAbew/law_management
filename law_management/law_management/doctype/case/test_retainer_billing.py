@@ -111,6 +111,20 @@ class TestRetainerBilling(unittest.TestCase):
 		throw.assert_called_once()
 		self.assertIn("Case Lead must be an enabled user", throw.call_args.args[0])
 
+	def test_case_child_table_currencies_are_set_from_case_currency(self):
+		case = frappe._dict(
+			currency="ETB",
+			team_members=[frappe._dict(currency=None)],
+			retainer_schedules=[frappe._dict(currency=None)],
+			milestones=[frappe._dict(currency=None)],
+		)
+
+		Case.set_child_table_currencies(case)
+
+		self.assertEqual(case.team_members[0].currency, "USD")
+		self.assertEqual(case.retainer_schedules[0].currency, "ETB")
+		self.assertEqual(case.milestones[0].currency, "ETB")
+
 	def test_excess_hours_are_split_and_billed(self):
 		usage_by_schedule = _calculate_retainer_schedule_usage(
 			retainer_schedules=[

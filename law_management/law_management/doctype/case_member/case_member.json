@@ -10,6 +10,7 @@
   "section_break_pvdo",
   "role",
   "section_break_xlzn",
+  "currency",
   "billing_rate"
  ],
  "fields": [
@@ -41,7 +42,16 @@
    "description": "Standard hourly rate in USD, exclusive of VAT. Used for retainer excess billing unless manually changed.",
    "fieldname": "billing_rate",
    "fieldtype": "Currency",
-   "label": "Billing Rate (USD)"
+   "label": "Billing Rate (USD)",
+   "options": "currency"
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Currency",
+   "options": "Currency"
   }
  ],
  "grid_page_length": 50,

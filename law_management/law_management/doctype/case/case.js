@@ -29,9 +29,13 @@ frappe.ui.form.on("Case", {
         if (frm.is_new() && !frm.doc.currency) {
             frm.set_value("currency", "USD");
         }
+
+        sync_case_child_currencies(frm);
     },
 
     refresh(frm) {
+        sync_case_child_currencies(frm);
+
         // Show button for Flat Fee (Milestones OR Upfront/Completion)
         // Billing logic removed as per new Legal Bill workflow
 
@@ -262,6 +266,10 @@ frappe.ui.form.on("Case", {
             });
         }
     },
+
+    currency(frm) {
+        sync_case_child_currencies(frm);
+    },
 });
 
 frappe.ui.form.on('Case Time Log', {
@@ -281,6 +289,7 @@ frappe.ui.form.on('Case Member', {
     user: function (frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         if (row.user) {
+            frappe.model.set_value(cdt, cdn, 'currency', 'USD');
             frappe.call({
                 method: "law_management.law_management.doctype.case.case.get_user_role_mapping",
                 args: { user: row.user },
@@ -300,11 +309,34 @@ frappe.ui.form.on('Case Member', {
 
 function set_standard_billing_rate(cdt, cdn) {
     let row = locals[cdt][cdn];
+    frappe.model.set_value(cdt, cdn, 'currency', 'USD');
     let rate = STANDARD_BILLING_RATES_USD[row.role];
 
     if (rate) {
         frappe.model.set_value(cdt, cdn, 'billing_rate', rate);
     }
+}
+
+function sync_case_child_currencies(frm) {
+    const case_currency = frm.doc.currency || "USD";
+
+    (frm.doc.team_members || []).forEach(row => {
+        if (row.currency !== "USD") {
+            frappe.model.set_value(row.doctype, row.name, "currency", "USD");
+        }
+    });
+
+    (frm.doc.retainer_schedules || []).forEach(row => {
+        if (row.currency !== case_currency) {
+            frappe.model.set_value(row.doctype, row.name, "currency", case_currency);
+        }
+    });
+
+    (frm.doc.milestones || []).forEach(row => {
+        if (row.currency !== case_currency) {
+            frappe.model.set_value(row.doctype, row.name, "currency", case_currency);
+        }
+    });
 }
 
 function is_case_team_member(frm, user) {

@@ -61,7 +61,7 @@ class TestLegalBillNaming(unittest.TestCase):
 			currency="USD",
 			conversion_rate=1.0,
 			items=[
-				frappe._dict(currency=None, qty=1, rate=250, amount=250, etb_amount=None),
+				frappe._dict(currency="ETB", qty=1, rate=250, amount=250, etb_amount=None),
 				frappe._dict(currency=None, qty=1, rate=100, amount=100, etb_amount=None),
 			],
 			grand_total=0,

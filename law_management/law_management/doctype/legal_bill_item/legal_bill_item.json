@@ -64,6 +64,7 @@
             "read_only": 1
         },
         {
+            "default": "USD",
             "fieldname": "currency",
             "fieldtype": "Link",
             "hidden": 1,

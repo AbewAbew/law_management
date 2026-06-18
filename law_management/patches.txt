@@ -6,3 +6,4 @@ law_management.law_management.patches.v1_0.prepare_case_currency_column
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
 law_management.law_management.patches.v1_0.set_default_currency
+law_management.law_management.patches.v1_0.set_child_table_currencies

@@ -172,6 +172,7 @@ class Case(Document):
 	def validate(self):
 		self.currency = _get_document_currency(self)
 
+		self.set_child_table_currencies()
 		self.validate_case_lead()
 		self.validate_time_log_users()
 
@@ -209,6 +210,16 @@ class Case(Document):
 			schedule.used_hours = usage.get("used_hours", 0.0)
 			schedule.excess_hours = usage.get("excess_hours", 0.0)
 			schedule.excess_amount = usage.get("excess_amount", 0.0)
+
+	def set_child_table_currencies(self):
+		for member in self.team_members or []:
+			member.currency = DEFAULT_CURRENCY
+
+		for schedule in self.retainer_schedules or []:
+			schedule.currency = self.currency
+
+		for milestone in self.milestones or []:
+			milestone.currency = self.currency
 
 	def validate_case_lead(self):
 		if not self.case_lead:
@@ -254,6 +265,7 @@ class Case(Document):
 				"schedule_name": f"Period {i+1}",
 				"start_date": current_date,
 				"end_date": period_end_date,
+				"currency": self.currency,
 				"amount": amount_per_period,
 				"allocated_hours": hours_per_period,
 				"used_hours": 0,
@@ -410,6 +422,7 @@ def create_retainer_invoice(case_name, schedule_name):
 		"service": service_item,
 		"description": f"Retainer Fee for {schedule_row.schedule_name} ({schedule_row.start_date} - {schedule_row.end_date})",
 		"qty": 1,
+		"currency": invoice.currency,
 		"rate": schedule_row.amount,
 		"amount": schedule_row.amount
 	})
@@ -431,6 +444,7 @@ def create_retainer_invoice(case_name, schedule_name):
 			"service": excess_item_name if frappe.db.exists("Legal Service Item", excess_item_name) else service_item,
 			"description": f"Excess Hours Fee for {schedule_row.schedule_name}",
 			"qty": 1,
+			"currency": invoice.currency,
 			"rate": schedule_row.excess_amount,
 			"amount": schedule_row.excess_amount
 		})
@@ -473,6 +487,7 @@ def create_milestone_invoice(case_name, milestone_name):
 		"service": service_item,
 		"description": f"Milestone Payment: {milestone_row.milestone_name}",
 		"qty": 1,
+		"currency": invoice.currency,
 		"rate": milestone_row.amount,
 		"amount": milestone_row.amount
 	})

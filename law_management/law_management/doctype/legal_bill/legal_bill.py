@@ -76,8 +76,7 @@ class LegalBill(Document):
 		total = 0.0
 		items = self.get("items") if hasattr(self, "get") else getattr(self, "items", None)
 		for item in items or []:
-			if not item.currency:
-				item.currency = self.currency
+			item.currency = self.currency
 
 			if item.amount is None and item.rate is not None:
 				item.amount = (item.qty or 1) * item.rate
