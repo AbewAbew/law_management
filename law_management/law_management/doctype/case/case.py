@@ -515,11 +515,9 @@ def has_permission(doc, user):
 		return True
 
 	# 2. Non-partner legal team members:
-	# - Create: Blocked for Legal Paralegals (handled here or via Role Permissions)
+	# - Create: Blocked. Only Legal Partners and System Managers can create cases.
 	if doc.is_new():
-		if "Legal Paralegal" in roles and "Legal Associate" not in roles:
-			return False
-		return True
+		return False
 
 	# - Read/Write: Must be a team member
 	is_member = frappe.db.exists("Case Member", {"parent": doc.name, "user": user})
