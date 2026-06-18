@@ -143,13 +143,16 @@ has_permission = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Leave Application": {
+		"after_insert": "law_management.approval_notifications.notify_leave_application_approvers",
+		"on_update": "law_management.approval_notifications.share_leave_application_with_approvers",
+	},
+	"Expense Claim": {
+		"after_insert": "law_management.approval_notifications.notify_expense_claim_approvers",
+		"on_update": "law_management.approval_notifications.share_expense_claim_with_approvers",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
