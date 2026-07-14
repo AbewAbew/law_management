@@ -19,6 +19,12 @@ frappe.ui.form.on('Legal Bill', {
             };
         });
 
+        frm.set_query('finance_contact', function () {
+            return {
+                query: 'law_management.law_management.doctype.legal_bill.legal_bill.get_accounts_department_users'
+            };
+        });
+
         frm.set_query('escalation_contact', function () {
             return {
                 query: 'law_management.law_management.doctype.legal_bill.legal_bill.get_legal_partner_users'
@@ -29,7 +35,7 @@ frappe.ui.form.on('Legal Bill', {
     onload: function (frm) {
         if (frm.is_new() && !frm.doc.finance_contact) {
             frappe.call({
-                method: "law_management.law_management.doctype.legal_bill.legal_bill.get_legal_finance_user",
+                method: "law_management.law_management.doctype.legal_bill.legal_bill.get_accounts_department_finance_user",
                 callback: function (r) {
                     if (r.message) {
                         frm.set_value("finance_contact", r.message);

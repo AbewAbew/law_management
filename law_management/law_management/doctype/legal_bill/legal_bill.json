@@ -164,14 +164,14 @@
             "fieldtype": "Link",
             "label": "Finance Contact",
             "options": "User",
-            "description": "Auto-filled with Legal Finance role user."
+            "description": "Auto-filled with the active user linked to the Accounts department."
         },
         {
             "fieldname": "escalation_contact",
-            "fieldtype": "Link",
-            "label": "Escalation Contact",
-            "options": "User",
-            "description": "Person to notify if bill is overdue by 30 days."
+            "fieldtype": "Table MultiSelect",
+            "label": "Escalation Contacts",
+            "options": "Legal Bill Escalation Contact",
+            "description": "Partners to notify if the bill is overdue by 30 days."
         },
         {
             "fieldname": "print_settings_section",

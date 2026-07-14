@@ -11,6 +11,14 @@ LEGAL_INVOICE_PREFIX = "TBeST/INV"
 LEGAL_INVOICE_DIGITS = 3
 LEGAL_INVOICE_MAX_PER_YEAR = 999
 DEFAULT_CURRENCY = "USD"
+ACCOUNTS_DEPARTMENT_NAME = "Accounts"
+EXCLUDED_USER_LINKS = ("Administrator", "Guest")
+
+
+def _get_row_value(row, fieldname, default=None):
+	if hasattr(row, "get"):
+		return row.get(fieldname, default)
+	return getattr(row, fieldname, default)
 
 
 def _get_invoice_year(bill_date=None):
@@ -37,6 +45,39 @@ def _generate_invoice_name(year):
 	return _format_invoice_name(year, sequence)
 
 
+def _is_enabled_user(user):
+	return bool(user and user not in EXCLUDED_USER_LINKS and frappe.db.get_value("User", user, "enabled"))
+
+
+def _user_has_role(user, role):
+	return bool(
+		frappe.db.exists(
+			"Has Role",
+			{
+				"parent": user,
+				"parenttype": "User",
+				"role": role,
+			},
+		)
+	)
+
+
+def _get_escalation_contact_users(escalation_contact):
+	if not escalation_contact:
+		return []
+
+	if isinstance(escalation_contact, str):
+		return [escalation_contact]
+
+	users = []
+	for row in escalation_contact:
+		user = _get_row_value(row, "user")
+		if user and user not in users:
+			users.append(user)
+
+	return users
+
+
 class LegalBill(Document):
 	def autoname(self):
 		self.name = _generate_invoice_name(_get_invoice_year(self.bill_date))
@@ -54,8 +95,7 @@ class LegalBill(Document):
 
 	def before_insert(self):
 		if not self.finance_contact:
-			# Auto-fill with a user having 'Legal Finance' role
-			finance_user = get_legal_finance_user()
+			finance_user = get_accounts_department_finance_user()
 			if finance_user:
 				self.finance_contact = finance_user
 
@@ -90,21 +130,20 @@ class LegalBill(Document):
 		self.grand_total = total
 
 	def validate_escalation_contact(self):
-		if not self.escalation_contact:
+		escalation_users = _get_escalation_contact_users(self.escalation_contact)
+		if not escalation_users:
 			return
 
-		is_enabled = frappe.db.get_value("User", self.escalation_contact, "enabled")
-		has_partner_role = frappe.db.exists(
-			"Has Role",
-			{
-				"parent": self.escalation_contact,
-				"parenttype": "User",
-				"role": "Legal Partner",
-			},
-		)
+		invalid_users = [
+			user for user in escalation_users if not (_is_enabled_user(user) and _user_has_role(user, "Legal Partner"))
+		]
 
-		if not (is_enabled and has_partner_role):
-			frappe.throw("Escalation Contact must be an enabled user with the Legal Partner role.")
+		if invalid_users:
+			frappe.throw(
+				"Escalation Contacts must only contain enabled users with the Legal Partner role: {0}".format(
+					", ".join(invalid_users)
+				)
+			)
 
 	def calculate_due_date(self):
 		if self.bill_date:
@@ -163,12 +202,12 @@ class LegalBill(Document):
 	def notify_partners(self):
 		# Logic to notify partners or specific escalation contact
 		recipients = []
-		if self.escalation_contact:
-			email = frappe.db.get_value("User", self.escalation_contact, "email")
+		for user in _get_escalation_contact_users(self.escalation_contact):
+			email = frappe.db.get_value("User", user, "email")
 			if email:
 				recipients.append(email)
 
-
+		recipients = sorted(set(recipients))
 
 		if recipients:
 			sender = frappe.db.get_value("Email Account", {"default_outgoing": 1}, "email_id")
@@ -207,9 +246,7 @@ def check_automation_rules():
 				bill.save(ignore_permissions=True)
 				bill.send_reminder_email()
 
-@frappe.whitelist()
-def get_legal_finance_user():
-	# fetch users with the role
+def _get_legal_finance_role_user():
 	has_role = frappe.qb.DocType("Has Role")
 	user = frappe.qb.DocType("User")
 
@@ -230,6 +267,76 @@ def get_legal_finance_user():
 	if result:
 		return result[0][0]
 	return None
+
+
+def _get_accounts_department_user_rows(txt="", start=0, page_len=20):
+	if not (
+		frappe.db.table_exists("Employee")
+		and frappe.db.table_exists("Department")
+		and frappe.db.has_column("Employee", "user_id")
+		and frappe.db.has_column("Employee", "department")
+	):
+		return []
+
+	txt = txt or ""
+	return frappe.db.sql(
+		"""
+		SELECT DISTINCT u.name, u.full_name
+		FROM `tabEmployee` e
+		INNER JOIN `tabUser` u
+			ON u.name = e.user_id
+		LEFT JOIN `tabDepartment` d
+			ON d.name = e.department
+		WHERE e.status = 'Active'
+			AND e.user_id IS NOT NULL
+			AND e.user_id != ''
+			AND u.enabled = 1
+			AND u.name NOT IN ('Administrator', 'Guest')
+			AND (
+				d.department_name = %(department)s
+				OR d.name = %(department)s
+				OR d.name LIKE %(department_prefix)s
+				OR e.department = %(department)s
+				OR e.department LIKE %(department_prefix)s
+			)
+			AND (
+				%(txt)s = ''
+				OR u.name LIKE %(like_txt)s
+				OR u.full_name LIKE %(like_txt)s
+				OR e.employee_name LIKE %(like_txt)s
+			)
+		ORDER BY u.full_name ASC, u.name ASC
+		LIMIT %(start)s, %(page_len)s
+		""",
+		{
+			"department": ACCOUNTS_DEPARTMENT_NAME,
+			"department_prefix": f"{ACCOUNTS_DEPARTMENT_NAME} -%",
+			"txt": txt,
+			"like_txt": f"%{txt}%",
+			"start": start,
+			"page_len": page_len,
+		},
+	)
+
+
+@frappe.whitelist()
+def get_accounts_department_finance_user():
+	accounts_users = _get_accounts_department_user_rows(page_len=1)
+	if accounts_users:
+		return accounts_users[0][0]
+
+	return _get_legal_finance_role_user()
+
+
+@frappe.whitelist()
+def get_legal_finance_user():
+	return get_accounts_department_finance_user()
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_accounts_department_users(doctype, txt, searchfield, start, page_len, filters):
+	return _get_accounts_department_user_rows(txt=txt, start=start, page_len=page_len)
 
 
 @frappe.whitelist()
