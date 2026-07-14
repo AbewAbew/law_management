@@ -8,3 +8,4 @@ law_management.law_management.patches.v1_0.prepare_case_currency_column
 law_management.law_management.patches.v1_0.set_default_currency
 law_management.law_management.patches.v1_0.set_child_table_currencies
 law_management.law_management.patches.v1_0.rename_flat_fee_to_fixed_fee
+law_management.law_management.patches.v1_0.sync_fixed_fee_billing_metadata
