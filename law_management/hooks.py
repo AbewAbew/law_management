@@ -303,6 +303,7 @@ law_management_custom_fields = [
 	"Customer-custom_date_of_verification",
 	"Leave Application-custom_attachements",
 	"Leave Application-custom_medical_certificate",
+	"Expense Claim Detail-custom_receipt_attachment",
 	"Task-custom_case",
 	"Task-assignees",
 	"Timesheet Detail-custom_case",
