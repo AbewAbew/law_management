@@ -36,7 +36,7 @@ frappe.ui.form.on("Case", {
     refresh(frm) {
         sync_case_child_currencies(frm);
 
-        // Show button for Flat Fee (Milestones OR Upfront/Completion)
+        // Show button for Fixed Fee (Milestones OR Upfront/Completion)
         // Billing logic removed as per new Legal Bill workflow
 
         // Filter "Assign To" Sidebar to only show Case Members
@@ -130,7 +130,7 @@ frappe.ui.form.on("Case", {
                 });
                 d.show();
 
-            } else if (frm.doc.billing_type === "Flat Fee" && frm.doc.payment_structure === "Milestones") {
+            } else if (is_fixed_fee_billing_type(frm) && frm.doc.payment_structure === "Milestones") {
                 // Milestone Invoice Logic
                 if (!frm.doc.milestones || frm.doc.milestones.length === 0) {
                     frappe.msgprint(__("No Milestones defined."));
@@ -176,7 +176,7 @@ frappe.ui.form.on("Case", {
                 d.show();
 
             } else {
-                // Standard Invoice Logic (Hourly, Flat Fee Upfront etc)
+                // Standard Invoice Logic (Hourly, Fixed Fee Upfront etc)
                 frappe.new_doc('Legal Bill', {
                     case_reference: frm.doc.name,
                     customer: frm.doc.client,
@@ -317,6 +317,10 @@ function set_standard_billing_rate(cdt, cdn) {
     if (rate) {
         frappe.model.set_value(cdt, cdn, 'billing_rate', rate);
     }
+}
+
+function is_fixed_fee_billing_type(frm) {
+    return ["Fixed Fee", "Flat Fee"].includes(frm.doc.billing_type);
 }
 
 function setup_team_member_grid_buttons(frm) {

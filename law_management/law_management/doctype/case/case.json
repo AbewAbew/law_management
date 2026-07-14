@@ -21,8 +21,11 @@
         "court_details_section",
         "court_appearance_needed",
         "court_appearances",
-        "flat_fee_configuration_section",
+        "fixed_fee_configuration_section",
         "total_fee",
+        "has_success_fee",
+        "success_fee_base",
+        "success_fee_percentage",
         "payment_structure",
         "payment_method",
         "flat_bank_name",
@@ -104,7 +107,7 @@
             "fieldtype": "Select",
             "in_list_view": 1,
             "label": "Billing Type",
-            "options": "Hourly\nFlat Fee\nRetainer\nContingency",
+            "options": "Hourly\nFixed Fee\nRetainer\nContingency",
             "reqd": 1
         },
         {
@@ -170,16 +173,38 @@
             "options": "Court Appearance"
         },
         {
-            "depends_on": "eval:doc.billing_type == 'Flat Fee'\r\n",
-            "fieldname": "flat_fee_configuration_section",
+            "depends_on": "eval:doc.billing_type == 'Fixed Fee'\r\n",
+            "fieldname": "fixed_fee_configuration_section",
             "fieldtype": "Section Break",
-            "label": "Flat Fee Configuration"
+            "label": "Fixed Fee Configuration"
         },
         {
             "fieldname": "total_fee",
             "fieldtype": "Currency",
             "label": "Total Fee",
             "options": "currency"
+        },
+        {
+            "default": "0",
+            "depends_on": "eval:doc.billing_type == 'Fixed Fee'",
+            "fieldname": "has_success_fee",
+            "fieldtype": "Check",
+            "label": "Success Fee?"
+        },
+        {
+            "depends_on": "eval:doc.billing_type == 'Fixed Fee' && doc.has_success_fee",
+            "fieldname": "success_fee_base",
+            "fieldtype": "Currency",
+            "label": "Success Fee Base",
+            "mandatory_depends_on": "eval:doc.billing_type == 'Fixed Fee' && doc.has_success_fee",
+            "options": "currency"
+        },
+        {
+            "depends_on": "eval:doc.billing_type == 'Fixed Fee' && doc.has_success_fee",
+            "fieldname": "success_fee_percentage",
+            "fieldtype": "Percent",
+            "label": "Success Fee Percentage",
+            "mandatory_depends_on": "eval:doc.billing_type == 'Fixed Fee' && doc.has_success_fee"
         },
         {
             "fieldname": "payment_structure",
@@ -207,7 +232,7 @@
             "label": "Account Number"
         },
         {
-            "depends_on": "eval:doc.billing_type == 'Flat Fee' && doc.payment_structure == 'Milestones'",
+            "depends_on": "eval:doc.billing_type == 'Fixed Fee' && doc.payment_structure == 'Milestones'",
             "fieldname": "milestones",
             "fieldtype": "Table",
             "label": "Milestones",
