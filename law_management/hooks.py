@@ -43,7 +43,10 @@ required_apps = ["erpnext", "hrms", "print_designer"]
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Leave Application" : "public/js/leave_application_custom.js"}
+doctype_js = {
+	"Leave Application": "public/js/leave_application_custom.js",
+	"Leave Policy Assignment": "public/js/leave_policy_assignment_custom.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -135,9 +138,9 @@ has_permission = {
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Leave Policy Assignment": "law_management.hr.leave_policy_assignment.LawManagementLeavePolicyAssignment",
+}
 
 # Document Events
 # ---------------
