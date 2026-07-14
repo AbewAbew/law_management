@@ -13,6 +13,9 @@ LEGAL_INVOICE_MAX_PER_YEAR = 999
 DEFAULT_CURRENCY = "USD"
 ACCOUNTS_DEPARTMENT_NAME = "Accounts"
 EXCLUDED_USER_LINKS = ("Administrator", "Guest")
+# Hamle 1 starts the firm's Ethiopian fiscal invoice year; Sene 30 closes it.
+ETHIOPIAN_FISCAL_YEAR_START_MONTH = 7
+ETHIOPIAN_FISCAL_YEAR_START_DAY = 8
 
 
 def _get_row_value(row, fieldname, default=None):
@@ -22,7 +25,16 @@ def _get_row_value(row, fieldname, default=None):
 
 
 def _get_invoice_year(bill_date=None):
-	return str(getdate(bill_date or nowdate()).year)
+	date = getdate(bill_date or nowdate())
+	fiscal_year = date.year
+
+	if (date.month, date.day) >= (
+		ETHIOPIAN_FISCAL_YEAR_START_MONTH,
+		ETHIOPIAN_FISCAL_YEAR_START_DAY,
+	):
+		fiscal_year += 1
+
+	return str(fiscal_year)
 
 
 def _get_invoice_series_key(year):

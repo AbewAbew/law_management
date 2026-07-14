@@ -18,7 +18,9 @@ class TestLegalBillNaming(unittest.TestCase):
 	def test_invoice_name_uses_requested_format(self):
 		self.assertEqual(_format_invoice_name("2026", "001"), "TBeST/INV/001/2026")
 
-	def test_invoice_year_comes_from_bill_date(self):
+	def test_invoice_year_uses_ethiopian_fiscal_year_boundary(self):
+		self.assertEqual(_get_invoice_year("2026-07-07"), "2026")
+		self.assertEqual(_get_invoice_year("2026-07-08"), "2027")
 		self.assertEqual(_get_invoice_year("2027-01-01"), "2027")
 
 	def test_invoice_series_key_includes_year_for_annual_reset(self):
@@ -36,17 +38,17 @@ class TestLegalBillNaming(unittest.TestCase):
 
 		db.get_value.assert_called_once_with("Series", "TBeST/INV/2026/", "current", order_by="name", for_update=True)
 
-	def test_autoname_sets_invoice_number_from_bill_date_year(self):
-		bill = frappe._dict(bill_date="2026-06-14")
+	def test_autoname_sets_invoice_number_from_bill_date_fiscal_year(self):
+		bill = frappe._dict(bill_date="2026-07-08")
 
 		with patch(
 			"law_management.law_management.doctype.legal_bill.legal_bill._generate_invoice_name",
-			return_value="TBeST/INV/001/2026",
+			return_value="TBeST/INV/001/2027",
 		) as generate_invoice_name:
 			LegalBill.autoname(bill)
 
-		generate_invoice_name.assert_called_once_with("2026")
-		self.assertEqual(bill.name, "TBeST/INV/001/2026")
+		generate_invoice_name.assert_called_once_with("2027")
+		self.assertEqual(bill.name, "TBeST/INV/001/2027")
 
 	def test_legal_bill_defaults_to_usd(self):
 		bill = frappe._dict(currency=None, conversion_rate=None)
