@@ -1,10 +1,13 @@
 import frappe
 from frappe import _
-from frappe.utils import add_days, add_years, getdate, nowdate
+from frappe.utils import add_days, add_years, flt, getdate, nowdate
 
 from hrms.hr.doctype.leave_policy_assignment.leave_policy_assignment import (
 	LeavePolicyAssignment,
 )
+
+ETHIOPIAN_ANNUAL_LEAVE_BASE_DAYS = 16
+ETHIOPIAN_ANNUAL_LEAVE_INCREMENT_YEARS = 2
 
 
 class LawManagementLeavePolicyAssignment(LeavePolicyAssignment):
@@ -15,6 +18,24 @@ class LawManagementLeavePolicyAssignment(LeavePolicyAssignment):
 
 		super().set_dates()
 
+	def get_new_leaves(self, annual_allocation, leave_details, date_of_joining):
+		if is_ethiopian_annual_leave_type(leave_details.name):
+			from frappe.model.meta import get_field_precision
+
+			precision = get_field_precision(
+				frappe.get_meta("Leave Allocation").get_field("new_leaves_allocated")
+			)
+			return flt(
+				get_ethiopian_annual_leave_entitlement(
+					self.employee,
+					self.effective_from,
+					annual_allocation=annual_allocation,
+				),
+				precision,
+			)
+
+		return super().get_new_leaves(annual_allocation, leave_details, date_of_joining)
+
 
 @frappe.whitelist()
 def get_joining_date_work_year(employee, as_of_date=None):
@@ -24,6 +45,14 @@ def get_joining_date_work_year(employee, as_of_date=None):
 		"effective_to": effective_to,
 		"work_year": get_work_year_number(employee, effective_from),
 	}
+
+
+@frappe.whitelist()
+def get_ethiopian_annual_leave_entitlement(employee, effective_from=None, annual_allocation=None):
+	work_year = get_work_year_number(employee, effective_from)
+	base_days = max(flt(annual_allocation), ETHIOPIAN_ANNUAL_LEAVE_BASE_DAYS)
+	service_increments = max(work_year - 1, 0) // ETHIOPIAN_ANNUAL_LEAVE_INCREMENT_YEARS
+	return base_days + service_increments
 
 
 def get_current_work_year_dates(employee, as_of_date=None):
@@ -53,6 +82,10 @@ def get_work_year_number(employee, effective_from=None):
 	joining_date = getdate(date_of_joining)
 	effective_from = getdate(effective_from) if effective_from else get_current_work_year_dates(employee)[0]
 	return max(effective_from.year - joining_date.year + 1, 1)
+
+
+def is_ethiopian_annual_leave_type(leave_type):
+	return (leave_type or "").strip().lower().startswith("annual leave")
 
 
 def _same_month_day(source_date, year):

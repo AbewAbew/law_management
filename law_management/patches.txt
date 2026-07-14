@@ -11,3 +11,4 @@ law_management.law_management.patches.v1_0.rename_flat_fee_to_fixed_fee
 law_management.law_management.patches.v1_0.sync_fixed_fee_billing_metadata
 law_management.law_management.patches.v1_0.migrate_legal_bill_escalation_contacts
 law_management.law_management.patches.v1_0.add_expense_claim_receipt_attachment
+law_management.law_management.patches.v1_0.configure_ethiopian_annual_leave
