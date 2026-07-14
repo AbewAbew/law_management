@@ -49,6 +49,8 @@ frappe.ui.form.on("Case", {
             };
         });
 
+        setup_team_member_grid_buttons(frm);
+
         // Make Time Log User field Read-only
         frm.fields_dict['time_logs'].grid.update_docfield_property('user', 'read_only', 1);
 
@@ -315,6 +317,71 @@ function set_standard_billing_rate(cdt, cdn) {
     if (rate) {
         frappe.model.set_value(cdt, cdn, 'billing_rate', rate);
     }
+}
+
+function setup_team_member_grid_buttons(frm) {
+    const team_grid = frm.fields_dict.team_members && frm.fields_dict.team_members.grid;
+    if (!team_grid) {
+        return;
+    }
+
+    team_grid.add_custom_button(__('Add Legal Department'), () => {
+        add_legal_department_team_members(frm);
+    }, 'top');
+}
+
+function add_legal_department_team_members(frm) {
+    frappe.call({
+        method: "law_management.law_management.doctype.case.case.get_legal_department_team_members",
+        freeze: true,
+        freeze_message: __("Adding legal department team members"),
+        callback: function (r) {
+            const members = r.message || [];
+            if (!members.length) {
+                frappe.msgprint(__("No active Legal department users were found."));
+                return;
+            }
+
+            const existing_users = new Set((frm.doc.team_members || [])
+                .map(member => member.user)
+                .filter(Boolean));
+            let added = 0;
+            let skipped = 0;
+
+            members.forEach(member => {
+                if (!member.user || existing_users.has(member.user)) {
+                    skipped += 1;
+                    return;
+                }
+
+                let row = frm.add_child("team_members");
+                row.user = member.user;
+                row.role = member.role;
+                row.currency = member.currency || "USD";
+                row.billing_rate = member.billing_rate || STANDARD_BILLING_RATES_USD[member.role] || 0;
+                existing_users.add(member.user);
+                added += 1;
+            });
+
+            frm.refresh_field("team_members");
+
+            if (added) {
+                frappe.show_alert({
+                    message: __("Added {0} legal department team member(s).", [added]),
+                    indicator: "green"
+                });
+            } else {
+                frappe.msgprint(__("All Legal department users are already in the Team Members table."));
+            }
+
+            if (skipped && added) {
+                frappe.show_alert({
+                    message: __("{0} existing team member(s) were skipped.", [skipped]),
+                    indicator: "blue"
+                });
+            }
+        }
+    });
 }
 
 function sync_case_child_currencies(frm) {

@@ -9,8 +9,11 @@ from law_management.law_management.doctype.case.case import (
 	_calculate_retainer_schedule_usage,
 	_get_document_currency,
 	_get_invalid_time_log_users,
+	_build_case_member_from_employee,
+	_get_legal_department_case_member_role,
 	_get_member_billing_rate,
 	_is_lawyer_user,
+	get_user_role_mapping,
 )
 
 
@@ -34,6 +37,59 @@ class TestRetainerBilling(unittest.TestCase):
 		rate = _get_member_billing_rate(frappe._dict(role="Associate", billing_rate=175))
 
 		self.assertEqual(rate, 175)
+
+	def test_legal_department_case_member_role_uses_partner_role(self):
+		role = _get_legal_department_case_member_role("Managing Partner", "Legal Partner")
+
+		self.assertEqual(role, "Partner")
+
+	def test_legal_department_case_member_role_uses_associate_designation_level(self):
+		self.assertEqual(
+			_get_legal_department_case_member_role("Senior Associate", "Legal Associate"),
+			"Senior Associate",
+		)
+		self.assertEqual(
+			_get_legal_department_case_member_role("Junior Associate", "Legal Associate"),
+			"Junior Associate",
+		)
+		self.assertEqual(
+			_get_legal_department_case_member_role("Associate", "Legal Associate"),
+			"Associate",
+		)
+
+	def test_legal_department_case_member_row_sets_standard_rate(self):
+		member = _build_case_member_from_employee(
+			frappe._dict(
+				user="senior@example.com",
+				full_name="Senior Lawyer",
+				employee_name="Senior Lawyer",
+				designation="Senior Associate",
+				roles="Legal Associate",
+			)
+		)
+
+		self.assertEqual(member.user, "senior@example.com")
+		self.assertEqual(member.role, "Senior Associate")
+		self.assertEqual(member.currency, "USD")
+		self.assertEqual(member.billing_rate, 230)
+
+	def test_manual_user_role_mapping_uses_employee_designation(self):
+		fake_db = Mock()
+		fake_db.get_value.return_value = "Junior Associate"
+
+		with (
+			patch("law_management.law_management.doctype.case.case.frappe.get_roles", return_value=["Legal Associate"]),
+			patch.object(frappe.local, "db", fake_db, create=True),
+			patch.object(frappe.local, "flags", frappe._dict(in_test=True), create=True),
+		):
+			role = get_user_role_mapping("junior@example.com")
+
+		self.assertEqual(role, "Junior Associate")
+		fake_db.get_value.assert_called_once_with(
+			"Employee",
+			{"user_id": "junior@example.com", "status": "Active"},
+			"designation",
+		)
 
 	def test_time_log_users_must_be_case_team_members(self):
 		invalid_users = _get_invalid_time_log_users(

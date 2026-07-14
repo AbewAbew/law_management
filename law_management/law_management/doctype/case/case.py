@@ -18,6 +18,7 @@ SUPPORTED_CASE_CURRENCIES = {"USD", "ETB"}
 CASE_LEAD_ROLES = ("Legal Partner", "Legal Associate")
 LEGAL_TEAM_ROLES = ("Legal Partner", "Legal Associate", "Legal Paralegal")
 EXCLUDED_USER_LINKS = ("Administrator", "Guest")
+LEGAL_DEPARTMENT_NAME = "Legal"
 
 
 def _get_row_value(row, fieldname, default=None):
@@ -44,6 +45,46 @@ def _get_member_billing_rate(member):
 		return custom_rate
 
 	return _get_standard_billing_rate(_get_row_value(member, "role"))
+
+
+def _split_roles(roles):
+	if isinstance(roles, str):
+		return {role.strip() for role in roles.split(",") if role.strip()}
+
+	return set(roles or [])
+
+
+def _get_legal_department_case_member_role(designation, roles):
+	roles = _split_roles(roles)
+	designation = (designation or "").strip().lower()
+
+	if "Legal Partner" in roles or "partner" in designation:
+		return "Partner"
+
+	if "senior associate" in designation:
+		return "Senior Associate"
+
+	if "junior associate" in designation:
+		return "Junior Associate"
+
+	if "Legal Associate" in roles or "associate" in designation:
+		return "Associate"
+
+	return ""
+
+
+def _build_case_member_from_employee(row):
+	role = _get_legal_department_case_member_role(row.get("designation"), row.get("roles"))
+	if not role:
+		return None
+
+	return frappe._dict(
+		user=row.user,
+		full_name=row.full_name or row.employee_name or row.user,
+		role=role,
+		currency=DEFAULT_CURRENCY,
+		billing_rate=_get_standard_billing_rate(role),
+	)
 
 
 def _get_invalid_time_log_users(team_members, time_logs):
@@ -335,17 +376,54 @@ def get_legal_team_users(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
+def get_legal_department_team_members():
+	employees = frappe.db.sql("""
+		SELECT
+			e.user_id as user,
+			u.full_name,
+			e.employee_name,
+			e.designation,
+			GROUP_CONCAT(DISTINCT hr.role) as roles
+		FROM `tabEmployee` e
+		INNER JOIN `tabUser` u
+			ON u.name = e.user_id
+		INNER JOIN `tabDepartment` d
+			ON d.name = e.department
+		INNER JOIN `tabHas Role` hr
+			ON hr.parent = u.name
+			AND hr.parenttype = 'User'
+			AND hr.role IN %(roles)s
+		WHERE e.status = 'Active'
+			AND e.user_id IS NOT NULL
+			AND e.user_id != ''
+			AND u.enabled = 1
+			AND u.name NOT IN %(excluded_users)s
+			AND IFNULL(d.disabled, 0) = 0
+			AND (
+				d.department_name = %(legal_department)s
+				OR d.name = %(legal_department)s
+				OR d.name LIKE %(legal_department_prefix)s
+			)
+		GROUP BY e.user_id, u.full_name, e.employee_name, e.designation
+		ORDER BY u.full_name ASC, e.employee_name ASC
+	""", {
+		"roles": tuple(CASE_LEAD_ROLES),
+		"excluded_users": EXCLUDED_USER_LINKS,
+		"legal_department": LEGAL_DEPARTMENT_NAME,
+		"legal_department_prefix": f"{LEGAL_DEPARTMENT_NAME} -%",
+	}, as_dict=True)
+
+	return [member for member in (_build_case_member_from_employee(row) for row in employees) if member]
+
+
+@frappe.whitelist()
 def get_user_role_mapping(user):
 	if not user: return ""
 
 	roles = frappe.get_roles(user)
+	designation = frappe.db.get_value("Employee", {"user_id": user, "status": "Active"}, "designation")
 
-	if "Legal Partner" in roles:
-		return "Partner"
-	elif "Legal Associate" in roles:
-		return "Associate"
-
-	return ""
+	return _get_legal_department_case_member_role(designation, roles)
 
 @frappe.whitelist()
 def get_member_query(doctype, txt, searchfield, start, page_len, filters):
