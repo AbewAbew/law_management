@@ -11,8 +11,19 @@ LEGAL_INVOICE_PREFIX = "TBeST/INV"
 LEGAL_INVOICE_DIGITS = 3
 LEGAL_INVOICE_MAX_PER_YEAR = 999
 DEFAULT_CURRENCY = "USD"
+DEFAULT_RECEIVING_BANK = "Awash Bank"
 ACCOUNTS_DEPARTMENT_NAME = "Accounts"
 EXCLUDED_USER_LINKS = ("Administrator", "Guest")
+WIRE_TRANSFER_ACCOUNTS = {
+	"Awash Bank": {
+		"USD": ("TBeST Law USD Account", "021141025627100"),
+		"ETB": ("TBeST Law Birr Account", "013041025627100"),
+	},
+	"Sinqee Bank": {
+		"USD": ("TBeST Law USD Account", "2051130081315"),
+		"ETB": ("TBeST Law Birr Account", "1051130080113"),
+	},
+}
 # Hamle 1 starts the firm's Ethiopian fiscal invoice year; Sene 30 closes it.
 ETHIOPIAN_FISCAL_YEAR_START_MONTH = 7
 ETHIOPIAN_FISCAL_YEAR_START_DAY = 8
@@ -39,6 +50,10 @@ def _get_invoice_year(bill_date=None):
 
 def _get_invoice_series_key(year):
 	return f"{LEGAL_INVOICE_PREFIX}/{year}/"
+
+
+def _get_wire_account_details(receiving_bank, currency):
+	return WIRE_TRANSFER_ACCOUNTS.get(receiving_bank, {}).get(currency)
 
 
 def _format_invoice_name(year, sequence):
@@ -96,6 +111,7 @@ class LegalBill(Document):
 
 	def validate(self):
 		self.set_default_currency()
+		self.set_wire_transfer_details()
 		self.validate_escalation_contact()
 		self.calculate_due_date()
 		self.set_item_currency_and_totals()
@@ -123,6 +139,22 @@ class LegalBill(Document):
 
 		if not self.conversion_rate:
 			self.conversion_rate = 1.0
+
+	def set_wire_transfer_details(self):
+		if not self.receiving_bank:
+			self.receiving_bank = DEFAULT_RECEIVING_BANK
+
+		account_details = _get_wire_account_details(self.receiving_bank, self.currency)
+		if not account_details:
+			frappe.throw(
+				"No wire transfer account is configured for {0} in {1}. "
+				"Select Awash Bank or Sinqee Bank and use USD or ETB as the invoice currency.".format(
+					self.receiving_bank,
+					self.currency,
+				)
+			)
+
+		self.bank_account_name, self.bank_account_number = account_details
 
 	def set_item_currency_and_totals(self):
 		total = 0.0

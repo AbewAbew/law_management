@@ -1,12 +1,24 @@
 // Copyright (c) 2024, Law Firm and contributors
 // For license information, please see license.txt
 
+const LEGAL_BILL_BANK_ACCOUNTS = {
+    'Awash Bank': {
+        USD: ['TBeST Law USD Account', '021141025627100'],
+        ETB: ['TBeST Law Birr Account', '013041025627100']
+    },
+    'Sinqee Bank': {
+        USD: ['TBeST Law USD Account', '2051130081315'],
+        ETB: ['TBeST Law Birr Account', '1051130080113']
+    }
+};
+
 frappe.ui.form.on('Legal Bill', {
     setup: function (frm) {
         frm.set_query('currency', function () {
             return {
                 filters: {
-                    'enabled': 1
+                    'enabled': 1,
+                    'name': ['in', ['USD', 'ETB']]
                 }
             };
         });
@@ -45,6 +57,7 @@ frappe.ui.form.on('Legal Bill', {
         }
 
         sync_item_currencies(frm);
+        sync_wire_transfer_details(frm);
 
         // Enforce Due Date calculation for mapped items
         if (frm.doc.bill_date) {
@@ -55,6 +68,7 @@ frappe.ui.form.on('Legal Bill', {
 
     refresh: function (frm) {
         sync_item_currencies(frm);
+        sync_wire_transfer_details(frm);
 
         if (frm.doc.print_format) {
             frm.meta.default_print_format = frm.doc.print_format;
@@ -80,6 +94,7 @@ frappe.ui.form.on('Legal Bill', {
 
     currency: function (frm) {
         if (frm.doc.currency) {
+            sync_wire_transfer_details(frm);
             // Update child table currency for display
             sync_item_currencies(frm);
 
@@ -105,6 +120,10 @@ frappe.ui.form.on('Legal Bill', {
         }
     },
 
+    receiving_bank: function (frm) {
+        sync_wire_transfer_details(frm);
+    },
+
     validate: function (frm) {
         calculate_totals(frm);
     },
@@ -116,6 +135,18 @@ frappe.ui.form.on('Legal Bill', {
         }
     }
 });
+
+var sync_wire_transfer_details = function (frm) {
+    const bank = frm.doc.receiving_bank || 'Awash Bank';
+    const details = (LEGAL_BILL_BANK_ACCOUNTS[bank] || {})[frm.doc.currency || 'USD'];
+
+    if (!frm.doc.receiving_bank) {
+        frm.set_value('receiving_bank', bank);
+    }
+
+    frm.set_value('bank_account_name', details ? details[0] : '');
+    frm.set_value('bank_account_number', details ? details[1] : '');
+};
 
 frappe.ui.form.on('Legal Bill Item', {
     items_add: function (frm, cdt, cdn) {

@@ -6,11 +6,13 @@ from law_management.law_management.doctype.legal_bill import legal_bill
 
 from law_management.law_management.doctype.legal_bill.legal_bill import (
 	DEFAULT_CURRENCY,
+	DEFAULT_RECEIVING_BANK,
 	LegalBill,
 	_format_invoice_name,
 	_generate_invoice_name,
 	_get_invoice_series_key,
 	_get_invoice_year,
+	_get_wire_account_details,
 )
 
 
@@ -57,6 +59,38 @@ class TestLegalBillNaming(unittest.TestCase):
 
 		self.assertEqual(bill.currency, DEFAULT_CURRENCY)
 		self.assertEqual(bill.conversion_rate, 1.0)
+
+	def test_wire_account_follows_bank_and_currency(self):
+		self.assertEqual(
+			_get_wire_account_details("Awash Bank", "USD"),
+			("TBeST Law USD Account", "021141025627100"),
+		)
+		self.assertEqual(
+			_get_wire_account_details("Awash Bank", "ETB"),
+			("TBeST Law Birr Account", "013041025627100"),
+		)
+		self.assertEqual(
+			_get_wire_account_details("Sinqee Bank", "USD"),
+			("TBeST Law USD Account", "2051130081315"),
+		)
+		self.assertEqual(
+			_get_wire_account_details("Sinqee Bank", "ETB"),
+			("TBeST Law Birr Account", "1051130080113"),
+		)
+
+	def test_legal_bill_sets_wire_account_details(self):
+		bill = frappe._dict(
+			receiving_bank=None,
+			currency="USD",
+			bank_account_name=None,
+			bank_account_number=None,
+		)
+
+		LegalBill.set_wire_transfer_details(bill)
+
+		self.assertEqual(bill.receiving_bank, DEFAULT_RECEIVING_BANK)
+		self.assertEqual(bill.bank_account_name, "TBeST Law USD Account")
+		self.assertEqual(bill.bank_account_number, "021141025627100")
 
 	def test_legal_bill_items_follow_invoice_currency(self):
 		bill = frappe._dict(
