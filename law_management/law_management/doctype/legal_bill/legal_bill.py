@@ -12,16 +12,28 @@ LEGAL_INVOICE_DIGITS = 3
 LEGAL_INVOICE_MAX_PER_YEAR = 999
 DEFAULT_CURRENCY = "USD"
 DEFAULT_RECEIVING_BANK = "Awash Bank"
+BANK_ACCOUNT_HOLDER = "TBeST Law LLP"
+BANK_ACCOUNT_HOLDER_TIN = "0081829025"
 ACCOUNTS_DEPARTMENT_NAME = "Accounts"
 EXCLUDED_USER_LINKS = ("Administrator", "Guest")
 WIRE_TRANSFER_ACCOUNTS = {
 	"Awash Bank": {
-		"USD": ("TBeST Law USD Account", "021141025627100"),
-		"ETB": ("TBeST Law Birr Account", "013041025627100"),
+		"bank_name_and_address": "AWASH BANK S.C",
+		"bank_branch": "Millennium Akababi",
+		"bank_swift_code": "AWINETAA XXX",
+		"accounts": {
+			"USD": ("TBeST Law USD Account", "021141025627100"),
+			"ETB": ("TBeST Law Birr Account", "013041025627100"),
+		},
 	},
 	"Sinqee Bank": {
-		"USD": ("TBeST Law USD Account", "2051130081315"),
-		"ETB": ("TBeST Law Birr Account", "1051130080113"),
+		"bank_name_and_address": "",
+		"bank_branch": "",
+		"bank_swift_code": "",
+		"accounts": {
+			"USD": ("TBeST Law USD Account", "2051130081315"),
+			"ETB": ("TBeST Law Birr Account", "1051130080113"),
+		},
 	},
 }
 # Hamle 1 starts the firm's Ethiopian fiscal invoice year; Sene 30 closes it.
@@ -53,7 +65,24 @@ def _get_invoice_series_key(year):
 
 
 def _get_wire_account_details(receiving_bank, currency):
-	return WIRE_TRANSFER_ACCOUNTS.get(receiving_bank, {}).get(currency)
+	bank_details = WIRE_TRANSFER_ACCOUNTS.get(receiving_bank)
+	if not bank_details:
+		return None
+
+	account_details = bank_details["accounts"].get(currency)
+	if not account_details:
+		return None
+
+	account_name, account_number = account_details
+	return {
+		"bank_account_name": account_name,
+		"bank_account_number": account_number,
+		"bank_name_and_address": bank_details["bank_name_and_address"],
+		"bank_branch": bank_details["bank_branch"],
+		"bank_swift_code": bank_details["bank_swift_code"],
+		"bank_account_holder": BANK_ACCOUNT_HOLDER,
+		"bank_account_holder_tin": BANK_ACCOUNT_HOLDER_TIN,
+	}
 
 
 def _format_invoice_name(year, sequence):
@@ -154,7 +183,8 @@ class LegalBill(Document):
 				)
 			)
 
-		self.bank_account_name, self.bank_account_number = account_details
+		for fieldname, value in account_details.items():
+			setattr(self, fieldname, value)
 
 	def set_item_currency_and_totals(self):
 		total = 0.0

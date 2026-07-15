@@ -61,22 +61,28 @@ class TestLegalBillNaming(unittest.TestCase):
 		self.assertEqual(bill.conversion_rate, 1.0)
 
 	def test_wire_account_follows_bank_and_currency(self):
-		self.assertEqual(
-			_get_wire_account_details("Awash Bank", "USD"),
-			("TBeST Law USD Account", "021141025627100"),
-		)
-		self.assertEqual(
-			_get_wire_account_details("Awash Bank", "ETB"),
-			("TBeST Law Birr Account", "013041025627100"),
-		)
-		self.assertEqual(
-			_get_wire_account_details("Sinqee Bank", "USD"),
-			("TBeST Law USD Account", "2051130081315"),
-		)
-		self.assertEqual(
-			_get_wire_account_details("Sinqee Bank", "ETB"),
-			("TBeST Law Birr Account", "1051130080113"),
-		)
+		awash_usd = _get_wire_account_details("Awash Bank", "USD")
+		self.assertEqual(awash_usd["bank_account_name"], "TBeST Law USD Account")
+		self.assertEqual(awash_usd["bank_account_number"], "021141025627100")
+
+		awash_etb = _get_wire_account_details("Awash Bank", "ETB")
+		self.assertEqual(awash_etb["bank_account_name"], "TBeST Law Birr Account")
+		self.assertEqual(awash_etb["bank_account_number"], "013041025627100")
+
+		sinqee_usd = _get_wire_account_details("Sinqee Bank", "USD")
+		self.assertEqual(sinqee_usd["bank_account_number"], "2051130081315")
+
+		sinqee_etb = _get_wire_account_details("Sinqee Bank", "ETB")
+		self.assertEqual(sinqee_etb["bank_account_number"], "1051130080113")
+
+	def test_awash_wire_account_includes_invoice_details(self):
+		details = _get_wire_account_details("Awash Bank", "ETB")
+
+		self.assertEqual(details["bank_swift_code"], "AWINETAA XXX")
+		self.assertEqual(details["bank_name_and_address"], "AWASH BANK S.C")
+		self.assertEqual(details["bank_branch"], "Millennium Akababi")
+		self.assertEqual(details["bank_account_holder"], "TBeST Law LLP")
+		self.assertEqual(details["bank_account_holder_tin"], "0081829025")
 
 	def test_legal_bill_sets_wire_account_details(self):
 		bill = frappe._dict(
@@ -84,6 +90,11 @@ class TestLegalBillNaming(unittest.TestCase):
 			currency="USD",
 			bank_account_name=None,
 			bank_account_number=None,
+			bank_name_and_address=None,
+			bank_branch=None,
+			bank_swift_code=None,
+			bank_account_holder=None,
+			bank_account_holder_tin=None,
 		)
 
 		LegalBill.set_wire_transfer_details(bill)
@@ -91,6 +102,11 @@ class TestLegalBillNaming(unittest.TestCase):
 		self.assertEqual(bill.receiving_bank, DEFAULT_RECEIVING_BANK)
 		self.assertEqual(bill.bank_account_name, "TBeST Law USD Account")
 		self.assertEqual(bill.bank_account_number, "021141025627100")
+		self.assertEqual(bill.bank_swift_code, "AWINETAA XXX")
+		self.assertEqual(bill.bank_name_and_address, "AWASH BANK S.C")
+		self.assertEqual(bill.bank_branch, "Millennium Akababi")
+		self.assertEqual(bill.bank_account_holder, "TBeST Law LLP")
+		self.assertEqual(bill.bank_account_holder_tin, "0081829025")
 
 	def test_legal_bill_items_follow_invoice_currency(self):
 		bill = frappe._dict(

@@ -3,14 +3,27 @@
 
 const LEGAL_BILL_BANK_ACCOUNTS = {
     'Awash Bank': {
-        USD: ['TBeST Law USD Account', '021141025627100'],
-        ETB: ['TBeST Law Birr Account', '013041025627100']
+        bank_name_and_address: 'AWASH BANK S.C',
+        bank_branch: 'Millennium Akababi',
+        bank_swift_code: 'AWINETAA XXX',
+        accounts: {
+            USD: ['TBeST Law USD Account', '021141025627100'],
+            ETB: ['TBeST Law Birr Account', '013041025627100']
+        }
     },
     'Sinqee Bank': {
-        USD: ['TBeST Law USD Account', '2051130081315'],
-        ETB: ['TBeST Law Birr Account', '1051130080113']
+        bank_name_and_address: '',
+        bank_branch: '',
+        bank_swift_code: '',
+        accounts: {
+            USD: ['TBeST Law USD Account', '2051130081315'],
+            ETB: ['TBeST Law Birr Account', '1051130080113']
+        }
     }
 };
+
+const LEGAL_BILL_ACCOUNT_HOLDER = 'TBeST Law LLP';
+const LEGAL_BILL_ACCOUNT_HOLDER_TIN = '0081829025';
 
 frappe.ui.form.on('Legal Bill', {
     setup: function (frm) {
@@ -138,14 +151,20 @@ frappe.ui.form.on('Legal Bill', {
 
 var sync_wire_transfer_details = function (frm) {
     const bank = frm.doc.receiving_bank || 'Awash Bank';
-    const details = (LEGAL_BILL_BANK_ACCOUNTS[bank] || {})[frm.doc.currency || 'USD'];
+    const bankDetails = LEGAL_BILL_BANK_ACCOUNTS[bank] || {};
+    const accountDetails = (bankDetails.accounts || {})[frm.doc.currency || 'USD'];
 
     if (!frm.doc.receiving_bank) {
         frm.set_value('receiving_bank', bank);
     }
 
-    frm.set_value('bank_account_name', details ? details[0] : '');
-    frm.set_value('bank_account_number', details ? details[1] : '');
+    frm.set_value('bank_account_name', accountDetails ? accountDetails[0] : '');
+    frm.set_value('bank_account_number', accountDetails ? accountDetails[1] : '');
+    frm.set_value('bank_name_and_address', bankDetails.bank_name_and_address || '');
+    frm.set_value('bank_branch', bankDetails.bank_branch || '');
+    frm.set_value('bank_swift_code', bankDetails.bank_swift_code || '');
+    frm.set_value('bank_account_holder', accountDetails ? LEGAL_BILL_ACCOUNT_HOLDER : '');
+    frm.set_value('bank_account_holder_tin', accountDetails ? LEGAL_BILL_ACCOUNT_HOLDER_TIN : '');
 };
 
 frappe.ui.form.on('Legal Bill Item', {
