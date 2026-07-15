@@ -2,15 +2,17 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe.contacts.doctype.address.address import get_address_display
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import nowdate, getdate, add_days
+from frappe.utils import add_days, flt, getdate, money_in_words, nowdate
 
 
 LEGAL_INVOICE_PREFIX = "TBeST/INV"
 LEGAL_INVOICE_DIGITS = 3
 LEGAL_INVOICE_MAX_PER_YEAR = 999
 DEFAULT_CURRENCY = "USD"
+DEFAULT_VAT_RATE = 15.0
 DEFAULT_RECEIVING_BANK = "Awash Bank"
 BANK_ACCOUNT_HOLDER = "TBeST Law LLP"
 BANK_ACCOUNT_HOLDER_TIN = "0081829025"
@@ -85,6 +87,40 @@ def _get_wire_account_details(receiving_bank, currency):
 	}
 
 
+def _get_customer_invoice_details(customer, billing_address=None, attention_contact=None):
+	if not customer:
+		return {}
+
+	customer_details = frappe.db.get_value(
+		"Customer",
+		customer,
+		["customer_name", "customer_primary_address", "primary_address", "customer_primary_contact", "email_id"],
+		as_dict=True,
+	)
+	if not customer_details:
+		return {}
+
+	billing_address = billing_address or customer_details.customer_primary_address
+	attention_contact = attention_contact or customer_details.customer_primary_contact
+	address_display = get_address_display(billing_address) if billing_address else customer_details.primary_address
+
+	attention_to = ""
+	attention_email = customer_details.email_id or ""
+	if attention_contact:
+		contact = frappe.get_cached_doc("Contact", attention_contact)
+		attention_to = contact.full_name or ""
+		attention_email = contact.email_id or attention_email
+
+	return {
+		"customer_name": customer_details.customer_name or customer,
+		"billing_address": billing_address or "",
+		"billing_address_display": address_display or "",
+		"attention_contact": attention_contact or "",
+		"attention_to": attention_to,
+		"attention_email": attention_email,
+	}
+
+
 def _format_invoice_name(year, sequence):
 	return f"{LEGAL_INVOICE_PREFIX}/{sequence}/{year}"
 
@@ -140,6 +176,7 @@ class LegalBill(Document):
 
 	def validate(self):
 		self.set_default_currency()
+		self.set_customer_invoice_details()
 		self.set_wire_transfer_details()
 		self.validate_escalation_contact()
 		self.calculate_due_date()
@@ -169,6 +206,17 @@ class LegalBill(Document):
 		if not self.conversion_rate:
 			self.conversion_rate = 1.0
 
+		if self.vat_rate is None:
+			self.vat_rate = DEFAULT_VAT_RATE
+
+	def set_customer_invoice_details(self):
+		for fieldname, value in _get_customer_invoice_details(
+			self.customer,
+			self.billing_address,
+			self.attention_contact,
+		).items():
+			setattr(self, fieldname, value)
+
 	def set_wire_transfer_details(self):
 		if not self.receiving_bank:
 			self.receiving_bank = DEFAULT_RECEIVING_BANK
@@ -187,7 +235,7 @@ class LegalBill(Document):
 			setattr(self, fieldname, value)
 
 	def set_item_currency_and_totals(self):
-		total = 0.0
+		subtotal = 0.0
 		items = self.get("items") if hasattr(self, "get") else getattr(self, "items", None)
 		for item in items or []:
 			item.currency = self.currency
@@ -199,9 +247,12 @@ class LegalBill(Document):
 				item.rate = item.amount
 
 			item.etb_amount = (item.amount or 0) * (self.conversion_rate or 1.0)
-			total += item.amount or 0
+			subtotal += item.amount or 0
 
-		self.grand_total = total
+		self.subtotal = flt(subtotal, 2)
+		self.vat_amount = flt(self.subtotal * flt(self.vat_rate) / 100, 2) if self.apply_vat else 0.0
+		self.grand_total = flt(self.subtotal + self.vat_amount, 2)
+		self.in_words = money_in_words(self.grand_total, self.currency)
 
 	def validate_escalation_contact(self):
 		escalation_users = _get_escalation_contact_users(self.escalation_contact)
@@ -391,6 +442,12 @@ def _get_accounts_department_user_rows(txt="", start=0, page_len=20):
 			"page_len": page_len,
 		},
 	)
+
+
+@frappe.whitelist()
+def get_customer_invoice_details(customer, billing_address=None, attention_contact=None):
+	frappe.get_doc("Customer", customer).check_permission("read")
+	return _get_customer_invoice_details(customer, billing_address, attention_contact)
 
 
 @frappe.whitelist()

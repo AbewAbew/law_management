@@ -36,6 +36,26 @@ frappe.ui.form.on('Legal Bill', {
             };
         });
 
+        frm.set_query('billing_address', function () {
+            return {
+                query: 'frappe.contacts.doctype.address.address.address_query',
+                filters: {
+                    link_doctype: 'Customer',
+                    link_name: frm.doc.customer
+                }
+            };
+        });
+
+        frm.set_query('attention_contact', function () {
+            return {
+                query: 'frappe.contacts.doctype.contact.contact.contact_query',
+                filters: {
+                    link_doctype: 'Customer',
+                    link_name: frm.doc.customer
+                }
+            };
+        });
+
         frm.set_query('print_format', function () {
             return {
                 filters: {
@@ -71,6 +91,10 @@ frappe.ui.form.on('Legal Bill', {
 
         sync_item_currencies(frm);
         sync_wire_transfer_details(frm);
+
+        if (frm.doc.customer && !frm.doc.customer_name) {
+            fetch_customer_invoice_details(frm);
+        }
 
         // Enforce Due Date calculation for mapped items
         if (frm.doc.bill_date) {
@@ -137,6 +161,34 @@ frappe.ui.form.on('Legal Bill', {
         sync_wire_transfer_details(frm);
     },
 
+    customer: async function (frm) {
+        await frm.set_value({
+            billing_address: '',
+            attention_contact: '',
+            customer_name: '',
+            billing_address_display: '',
+            attention_to: '',
+            attention_email: ''
+        });
+        fetch_customer_invoice_details(frm);
+    },
+
+    billing_address: function (frm) {
+        fetch_customer_invoice_details(frm);
+    },
+
+    attention_contact: function (frm) {
+        fetch_customer_invoice_details(frm);
+    },
+
+    apply_vat: function (frm) {
+        calculate_totals(frm);
+    },
+
+    vat_rate: function (frm) {
+        calculate_totals(frm);
+    },
+
     validate: function (frm) {
         calculate_totals(frm);
     },
@@ -148,6 +200,26 @@ frappe.ui.form.on('Legal Bill', {
         }
     }
 });
+
+var fetch_customer_invoice_details = function (frm) {
+    if (!frm.doc.customer) {
+        return;
+    }
+
+    frappe.call({
+        method: 'law_management.law_management.doctype.legal_bill.legal_bill.get_customer_invoice_details',
+        args: {
+            customer: frm.doc.customer,
+            billing_address: frm.doc.billing_address,
+            attention_contact: frm.doc.attention_contact
+        },
+        callback: function (r) {
+            if (r.message) {
+                frm.set_value(r.message);
+            }
+        }
+    });
+};
 
 var sync_wire_transfer_details = function (frm) {
     const bank = frm.doc.receiving_bank || 'Awash Bank';
@@ -254,10 +326,16 @@ var calculate_row_total = function (frm, cdt, cdn) {
 };
 
 var calculate_totals = function (frm) {
-    var grand_total = 0.0;
+    var subtotal = 0.0;
     (frm.doc.items || []).forEach(function (item) {
-        grand_total += item.amount;
+        subtotal += flt(item.amount);
     });
-    frm.set_value("grand_total", grand_total);
+
+    const vat_rate = frm.doc.apply_vat ? flt(frm.doc.vat_rate) : 0;
+    const vat_amount = flt(subtotal * vat_rate / 100, 2);
+
+    frm.set_value("subtotal", flt(subtotal, 2));
+    frm.set_value("vat_amount", vat_amount);
+    frm.set_value("grand_total", flt(subtotal + vat_amount, 2));
     // In words logic could go here or server side
 };
